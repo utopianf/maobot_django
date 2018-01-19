@@ -1,21 +1,21 @@
 import os
 import re
-import requests
 import subprocess
-import uuid
-
-from bs4 import BeautifulSoup
-from imghdr import what
 import urllib.request
+import uuid
+from imghdr import what
 
+import requests
+from bs4 import BeautifulSoup
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from ircimages.models import Image
 from maobot.settings import SECRET_KEYS
 from .models import Log
-from ircimages.models import Image
+
 
 def image_from_response(response, image):
     if response.status_code == requests.codes.ok:
@@ -24,9 +24,10 @@ def image_from_response(response, image):
         ext = what(img_temp.name)
         image.extension = ext
         img_temp.flush()
-        image.image.save(str(uuid.uuid4()).replace('-',''), File(img_temp))
+        image.image.save(str(uuid.uuid4()).replace('-', ''), File(img_temp))
         return image
     return None
+
 
 @receiver(post_save, sender=Log)
 def check_log(instance, **kwargs):
@@ -42,7 +43,7 @@ def check_log(instance, **kwargs):
                 Log(command='NOTICE', channel=log.channel,
                     nick='maobot', message=title).save()
 
-                #send to irc channel
+                # send to irc channel
                 sendstr = 'NOTICE %s :%s' % (log.channel, title)
                 cmd = "echo '%s' > /tmp/run/irc3/:raw" % sendstr
                 if os.path.isdir('/tmp/run/irc3'):
@@ -50,13 +51,13 @@ def check_log(instance, **kwargs):
             except:
                 pass
 
-            #image dl
-            nicoseiga_pat  = re.compile(
-                    'http:\/\/seiga.nicovideo.jp\/seiga\/[a-zA-Z]+([0-9]+)')
+            # image dl
+            nicoseiga_pat = re.compile(
+                'http:\/\/seiga.nicovideo.jp\/seiga\/[a-zA-Z]+([0-9]+)')
             pixiv_pat = re.compile(
-                    'https://www.pixiv.net/member_illust.php\/?\?([a-zA-Z0-9\-\.\/\?\@&=:~_#]+)')
+                'https://www.pixiv.net/member_illust.php\/?\?([a-zA-Z0-9\-\.\/\?\@&=:~_#]+)')
             twitter_pat = re.compile(
-                    'https:\/\/twitter.com\/[a-zA-Z0-9_]+\/status\/\d+')
+                'https:\/\/twitter.com\/[a-zA-Z0-9_]+\/status\/\d+')
 
             if twitter_pat.match(url):
                 images = soup.findAll('div', {'class': 'AdaptiveMedia-photoContainer'})
@@ -64,23 +65,23 @@ def check_log(instance, **kwargs):
                     print("twitter image")
                     image_url = image.find('img')['src']
                     img = image_from_response(requests.Session().get(image_url),
-                            Image(original_url=url, related_log=log))
+                                              Image(original_url=url, related_log=log))
                     img.save()
                     Log.objects.filter(id=log.id).update(attached_image=img.thumb)
             elif nicoseiga_pat.match(url):
                 seiga_login = 'https://secure.nicovideo.jp/secure/login'
                 seiga_id = nicoseiga_pat.search(url).group(1)
                 seiga_source = 'http://seiga.nicovideo.jp/image/source/%s' % seiga_id
-                login_post = { 'mail_tel': SECRET_KEYS['nicouser'],
-                               'password': SECRET_KEYS['nicopass'] }
+                login_post = {'mail_tel': SECRET_KEYS['nicouser'],
+                              'password': SECRET_KEYS['nicopass']}
 
                 session = requests.Session()
                 session.post(seiga_login, data=login_post)
                 soup = BeautifulSoup(session.get(seiga_source).text, 'lxml')
                 image_url = 'http://lohas.nicoseiga.jp%s' % soup.find(
-                        'div', {'class': 'illust_view_big'})['data-src']
-                img = image_from_response(requests.Session().get(image_url), 
-                        Image(original_url=url, related_log=log))
+                    'div', {'class': 'illust_view_big'})['data-src']
+                img = image_from_response(requests.Session().get(image_url),
+                                          Image(original_url=url, related_log=log))
                 img.save()
             elif pixiv_pat.match(url):
                 from pixivpy3 import AppPixivAPI
@@ -91,7 +92,7 @@ def check_log(instance, **kwargs):
                 pixiv_dict = parse_qs(pixiv_query)
                 pixiv_id = pixiv_dict['illust_id']
                 pixiv_illust = api.illust_detail(pixiv_id, req_auth=True).illust
-                if 'meta_pages' in pixiv_illust and len(pixiv_illust.meta_pages)!=0:
+                if 'meta_pages' in pixiv_illust and len(pixiv_illust.meta_pages) != 0:
                     image_urls = []
                     for i in pixiv_illust.meta_pages:
                         image_urls.append(i.image_urls.large)
@@ -99,8 +100,8 @@ def check_log(instance, **kwargs):
                     image_urls = [pixiv_illust.image_urls.large]
                 for image_url in image_urls:
                     response = api.requests_call('GET', image_url,
-                            headers={ 'Referer': 'https://app-api.pixiv.net/' },
-                            stream=True)
+                                                 headers={'Referer': 'https://app-api.pixiv.net/'},
+                                                 stream=True)
                     img = image_from_response(response,
-                            Image(original_url=url, related_log=log))
+                                              Image(original_url=url, related_log=log))
                     img.save()

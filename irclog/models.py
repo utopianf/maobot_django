@@ -1,9 +1,9 @@
-from datetime import datetime
-
 from django.db import models
 from django.utils import timezone
 
 # Create your models here.
+
+
 class Log(models.Model):
     AVAILABLE_COMMAND = (
         ('PRIVMSG', 'priv'),
@@ -21,7 +21,7 @@ class Log(models.Model):
     created_at = models.DateTimeField('date created', default=timezone.now)
 
     def __str__(self):
-        return "%s [%s] %s: %s" % (
+        return '%s [%s] %s: %s' % (
                 self.created_at.strftime('%Y-%m-%d %H:%M:%S'), 
                 self.channel, self.nick, self.message)
 

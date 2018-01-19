@@ -4,14 +4,17 @@ from django.shortcuts import render
 
 from .forms import IrcUserCreationForm
 
+
 # Create your views here.
 @login_required
 def index(request):
     return render(request, 'accounts/index.html')
 
+
 def new(request):
     form = IrcUserCreationForm()
-    return render(request, 'accounts/new.html', {'form': form,})
+    return render(request, 'accounts/new.html', {'form': form, })
+
 
 def create(request):
     if request.method == 'POST':
@@ -19,6 +22,6 @@ def create(request):
         if form.is_valid():
             form.save()
             return HttpResponseRedirect('./login')
-        return render(request, 'accounts/new.html', {'form': form,})
+        return render(request, 'accounts/new.html', {'form': form, })
     else:
         raise Http404
