@@ -87,8 +87,8 @@
 {% endblock content %}
 {% block extrabody %}
   <script>$(function() {
-    $('#channelList a').on('click', function (e) {
-       $('#current_channel').val($(this).attr('val'));
+      $('#channelList').find('a').on('click', function () {
+          $('#current_channel').val($(this).attr('val'));
     });
   });
   </script>
