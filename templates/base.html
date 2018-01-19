@@ -1,0 +1,46 @@
+{% load staticfiles %}
+{% load irc_exists %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:"ja" }}">
+<head>
+<meta charset="UTF-8">
+<title>{% block title %}maobot{% endblock %}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+<link rel="stylesheet" href="{% static 'css/grid.css' %}">
+<!--link rel="stylesheet" href="https://v4-alpha.getbootstrap.com/dist/css/bootstrap.min.css"-->
+{% block extrahead %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+  <a class="navbar-brand" href="../">maobot</a>
+  <div class="collapse navbar-collapse">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item"><a class="nav-link" href="{% url 'irclog:index' %}">irclog</a></li>
+      <li class="nav-item"><a class="nav-link" href="{% url 'ircimages:index' %}">ircimages</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">ircvideos</a></li>
+    </ul>
+    {% if 'ircon'|irc_exists %}
+    <div style="font-size:1em; color:green">
+    {% else %}
+    <div style="font-size:1em; color:red">
+    {% endif %}
+       <i class="fas fa-circle"></i>
+    </div>
+    <span class="navbar-text">
+       {{ request.user }}
+    </span>
+  </div>
+</nav>
+      {% block content %}
+      {{ content }}
+      {% endblock %}
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+  <script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
+  {% block extrabody %}{% endblock %}
+</body>
+</html>

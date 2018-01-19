@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block extrahead %}
+<link href="{% static 'accounts/css/regist.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="container">
+<form method="POST" action="{% url 'accounts:create' %}">
+    {% csrf_token %}
+    <div class="form-signin">
+    <h2 class="form-signin-heading">ユーザー登録</h2>
+    {{ form.non_field_errors }}
+    <label for="{{ form.username.id_for_label }}" class="sr-only">ユーザー名</label>
+    <input type="text" id="{{ form.username.id_for_label }}" name="{{ form.username.name }}" class="form-control" placeholder="ユーザー名" required autofocus />
+
+    {{ form.errors.password1 }}
+    <label for="{{ form.password1.id_for_label }}" class="sr-only">パスワード</label>
+    <input type="password" id="{{ form.password1.id_for_label }}" name="{{ form.password1.name }}"class="form-control" placeholder="パスワード" required />
+
+    {{ form.errors.password2 }}
+    <label for="{{ form.password2.id_for_label }}" class="sr-only">パスワード確認</label>
+    <input type="password" id="{{ form.password2.id_for_label }}" name="{{ form.password2.name }}"class="form-control" placeholder="パスワード（確認）" required />
+
+    {{ form.errors.passphrase }}
+    <label for="{{ form.passphrase.id_for_label }}" class="sr-only">パスフレーズ</label>
+    <input type="text" id="{{ form.passphrase.id_for_label }}" name="{{ form.passphrase.name }}" class="form-control" placeholder="パスフレーズ" required />
+    <br />
+    <button class="btn btn-lg btn-primary btn-block" type="submit" value="Create" />ユーザー登録</button>
+    </div>
+</form>
+</div>
+{% endblock %}

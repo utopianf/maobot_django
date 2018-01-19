@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block extrahead %}
+<link rel="stylesheet" href="{% static 'irclog/css/irc.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+  <nav class="col-2 d-none d-sm-block bg-light sidebar nav nav-pills">
+  <div class="list-group" id="channelList" role="tablist">
+     {% for c in channels %}
+     <a class="list-group-item list-group-item-action nav-link {% if channel.id == c.id %}active{% endif %}" data-toggle="list" href="#{{ c.id }}" role="tab" val="{{ c.id }}">
+             {{ c.name }}<br />{{ c.ircusers }}
+     </a>
+     {% endfor %}
+  </div>
+  </nav>
+  <main role="main" class="col-10 ml-sm-auto pt-3">
+    <div class="tab-content" id="nav-tabContent">
+
+    {% for c in channels %}
+    <div class="tab-pane {% if channel.id == c.id %}active{% endif %}" id="{{ c.id }}" role="tabpanel">
+    <div class="table-responsive">
+    <table class="table table-striped table-sm">
+    {% if log_list %}
+    {% for log in log_list %}
+    {% if log.channel.id == c.id %}
+    <tr class="row no-gutters">
+      <td class="irc time">{{ log.created_at|date:"Y-m-d" }} {{ log.created_at|time:"H:i:s" }}</td>
+      <td class="irc name">({{ log.nick }})</td>
+      <td class="irc {% if log.command == "PRIVMSG" %}priv{% elif log.command == "NOTICE" or "JOIN" %}noti{% endif %}">{{ log.message|urlize|linebreaksbr }}</td>
+    </tr>
+      {% if log.attached_image %}
+          <tr class="row no-gutters">
+            <td><img src="{{ MEDIA_URL }}/media/{{ log.attached_image }}" /></td>
+          </tr>
+      {% endif %}
+      {% if log.video %}
+      {% endif %}
+    {% else %}
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    </table>
+    </div>
+    </div>
+    {% endfor %}
+    </div>
+
+<!-- LogCreateForm -->
+{{ form.errors }}
+<form class="row" action="{% url 'irclog:index' %}" method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="hidden" value="{{ current_user.username }}" id="{{ form.nick.label }}" name="{{ form.nick.name }}"/>
+  <input type="hidden" value={{ channel.id }} id="current_channel" name="{{ form.channel.name }}"/>
+
+  <label class="sr-only" for="{{ form.channel.id_for_label }}">{{ form.channel.label }}</label>
+  <label class="sr-only" for="{{ form.command.id_for_label }}">{{ form.command.label }}</label>
+  <select class="col-1 form-control" name="{{ form.command.name }}" required id="{{ form.command.label }}">
+    {% for c in form.command %}
+    {{ c }}
+    {% endfor %}
+  </select>
+
+  <label class="sr-only" for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
+  <input type="text" class="col-8 form-control" name="{{ form.message.name }}" required id="{{ form.message.label }}" placeholder="Message" />
+  <label for="{{ form.attached_image.id_for_label }}" class="sr-only">attached_image</label>
+  <input type="file" class="col-2" name="{{ form.attached_image.name }}" id="{{ form.attached_image.label }}">
+  <button type="submit" class="col-1 btn btn-primary">送信</button>
+</form>
+
+<!-- SearchLogForm -->
+<form class="row" action="{% url 'irclog:index' %}" method="GET">
+  <input type="hidden" value="{{ channel.id }}" id="{{ search_form.search_channel.label }}" name="{{ search_form.search_channel.name }}"/>
+  <label class="sr-only" for="{{ search_form.keyword.label }}">{{ search_form.keyword.label }}</label>
+  <input type="text" class="col-2 form-control" name="{{ search_form.keyword.name }}" id="{{ search_form.keyword.id }}" placeholder="Keyword" value="{{ keyword }}" />
+  <input type="datetime-local" class="col-3 form-control" name="{{ search_form.start_at.name }}" required id="{{ search_form.start_at.id_for_label }}" value={{ start_at }} />
+  <input type="datetime-local" class="col-3 form-control" name="{{ search_form.end_at.name }}" required id="{{ search_form.end_at.id_for_label }}" value={{ end_at }} />
+  <button type="submit" class="col-1 btn btn-light">search</button>
+  <button type="submit" class="col-1 btn btn-light" name="previous_duration">&lt;&lt;</button>
+  <button type="submit" class="col-1 btn btn-light" name="now">○</button>
+  <button type="submit" class="col-1 btn btn-light" name="next_duration">&gt;&gt;</button>
+</form>
+</main>
+  </div>
+</div>
+{% endblock content %}
+{% block extrabody %}
+  <script>$(function() {
+    $('#channelList a').on('click', function (e) {
+       $('#current_channel').val($(this).attr('val'));
+    });
+  });
+  </script>
+{% endblock %}

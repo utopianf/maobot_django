@@ -1,0 +1,34 @@
+
+
+# Created by https://www.gitignore.io/api/linux,django
+
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+settings_local.py
+db.sqlite3
+media
+
+# If your build process includes running collectstatic, then you probably don't need or want to include staticfiles/
+# in your Git repository. Update and uncomment the following line accordingly.
+# <django-project-name>/staticfiles/
+
+### Linux ###
+*~
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+
+
+# End of https://www.gitignore.io/api/linux,django

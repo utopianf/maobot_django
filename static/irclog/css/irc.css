@@ -1,0 +1,36 @@
+.irc {
+    font-size: 16px;
+    line-height: 140%;
+    font-family: 'Menlo', monospace;
+    display: inline;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.irc-image {
+    padding-top: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+}
+
+.name {
+    color: #1010A0;
+}
+
+.priv {
+    color: #000000;
+}
+
+.noti {
+    color: #999999;
+}
+
+.time {
+    color: #6F4E3B;
+}
+
+.join {
+    color: #358120;
+}
+
