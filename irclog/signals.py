@@ -33,7 +33,7 @@ def image_from_response(response, image):
 def check_log(instance, **kwargs):
     log = instance
     if log.nick != 'maobot':
-        url_pat = re.compile(r"https?:\/\/[a-zA-Z0-9\-\.\/\?\@&=:~_#]+")
+        url_pat = re.compile(r"https?://[a-zA-Z0-9\-./?@&=:~_#]+")
         url_list = re.findall(url_pat, log.message)
         for url in url_list:
             response = urllib.request.urlopen(url)
@@ -53,11 +53,11 @@ def check_log(instance, **kwargs):
 
             # image dl
             nicoseiga_pat = re.compile(
-                'http:\/\/seiga.nicovideo.jp\/seiga\/[a-zA-Z]+([0-9]+)')
+                'http://seiga.nicovideo.jp/seiga/[a-zA-Z]+([0-9]+)')
             pixiv_pat = re.compile(
-                'https://www.pixiv.net/member_illust.php\/?\?([a-zA-Z0-9\-\.\/\?\@&=:~_#]+)')
+                'https://www.pixiv.net/member_illust.php/?\?([a-zA-Z0-9\-./?@&=:~_#]+)')
             twitter_pat = re.compile(
-                'https:\/\/twitter.com\/[a-zA-Z0-9_]+\/status\/\d+')
+                'https://twitter.com/[a-zA-Z0-9_]+/status/\d+')
 
             if twitter_pat.match(url):
                 images = soup.findAll('div', {'class': 'AdaptiveMedia-photoContainer'})

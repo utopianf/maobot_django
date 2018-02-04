@@ -16,7 +16,7 @@
   </div>
   </nav>
   <main role="main" class="col-10 ml-sm-auto pt-3">
-    <div class="tab-content" id="nav-tabContent">
+    <div class="tab-content" id="log-list">
 
     {% for c in channels %}
     <div class="tab-pane {% if channel.id == c.id %}active{% endif %}" id="{{ c.id }}" role="tabpanel">
@@ -49,7 +49,7 @@
 
 <!-- LogCreateForm -->
 {{ form.errors }}
-<form id="createform" class="row" action="{% url 'irclog:index' %}" method="POST" enctype="multipart/form-data">
+<form id="create-form" class="row" action="{% url 'irclog:index' %}" method="POST" enctype="multipart/form-data">
   {% csrf_token %}
   <input type="hidden" value="{{ current_user.username }}" id="{{ form.nick.label }}" name="{{ form.nick.name }}"/>
   <input type="hidden" value={{ channel.id }} id="current_channel" name="{{ form.channel.name }}"/>
@@ -70,17 +70,16 @@
 </form>
 
 <!-- SearchLogForm -->
-<form id="searchform" class="row" action="{% url 'irclog:index' %}" method="GET">
-  <input type="hidden" value="{{ channel.id }}" id="{{ search_form.search_channel.label }}" name="{{ search_form.search_channel.name }}"/>
-  <label class="sr-only" for="{{ search_form.keyword.label }}">{{ search_form.keyword.label }}</label>
-  <input type="text" class="col-2 form-control" name="{{ search_form.keyword.name }}" id="{{ search_form.keyword.id }}" placeholder="Keyword" value="{{ keyword }}" />
-  <input type="datetime-local" class="col-3 form-control" name="{{ search_form.start_at.name }}" required id="{{ search_form.start_at.id_for_label }}" value={{ start_at }} />
-  <input type="datetime-local" class="col-3 form-control" name="{{ search_form.end_at.name }}" required id="{{ search_form.end_at.id_for_label }}" value={{ end_at }} />
-  <button type="submit" class="col-1 btn btn-light">search</button>
-  <button type="submit" class="col-1 btn btn-light" name="previous_duration">&lt;&lt;</button>
-  <button type="submit" class="col-1 btn btn-light" name="now">○</button>
-  <button type="submit" class="col-1 btn btn-light" name="next_duration">&gt;&gt;</button>
-</form>
+<div id="search-form" class="row">
+  <label class="sr-only" for="keyword">keyword</label>
+  <input type="text" class="col-2 form-control" name="keyword" id="keyword" placeholder="keyword" value="{{ keyword }}" />
+  <input type="datetime-local" class="col-3 form-control" name="start_at" required id="start_at" value={{ start_at }} />
+  <input type="datetime-local" class="col-3 form-control" name="end_at" required id="end_at" value={{ end_at }} />
+  <button id="search" onclick="submitForm('{% url "irclog:api_v1_search" %}')" class="col-1 btn btn-light">search</button>
+  <button id="previous" onclick="submitForm('{% url "irclog:api_v1_previous" %}')" class="col-1 btn btn-light" name="previous_duration">&lt;&lt;</button>
+  <button id="now" onclick="submitForm('{% url "irclog:api_v1_now" %}')" class="col-1 btn btn-light" name="now">○</button>
+  <button id="next" onclick="submitForm('{% url "irclog:api_v1_next" %}')" class="col-1 btn btn-light" name="next_duration">&gt;&gt;</button>
+</div>
 </main>
   </div>
 </div>
@@ -92,7 +91,36 @@
        $('#current_channel').val($(this).attr('val'));
       });
     });
-    $('#searchform').submit(function() {
-       $('
+    function submitForm(url) {
+        var data = $('#search-form').serialize();
+        var log_list = $('#log-list');
+        log_list.html('');
+        $.ajax({
+            'url': url,
+            'type': 'GET',
+            'data': {
+                'start_at': $('#start_at').val(),
+                'end_at': $('#end_at').val(),
+                'keyword': $('#keyword').val()
+            },
+            'dataType': 'json',
+            'success':function(response){
+                $.each(response.channel_id_list, function(_, channel_id) {
+                    $.each(response.log_list, function(_, log) {
+                        if (log.channel == channel_id) {
+                            log_list.append('<td class="irc time">' + log.created_at + '</td>');
+                            log_list.append('<td class="irc name"> (' + log.nick + ')</td>');
+                            if (log.command === "PRIVMSG") {
+                                log_list.append('<td class="irc priv"> ' + log.message + '</td>');
+                            } else {
+                                log_list.append('<td class="irc noti"> ' + log.message + '</td>');
+                            }
+                        }
+                    })
+                })
+            }
+        });
+        return false;
+    }
   </script>
 {% endblock %}
