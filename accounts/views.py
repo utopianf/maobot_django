@@ -5,14 +5,17 @@ from django.urls import reverse
 
 from .forms import IrcUserCreationForm
 
+
 # Create your views here.
 @login_required
 def index(request):
     return render(request, 'accounts/index.html')
 
+
 def new(request):
     form = IrcUserCreationForm()
-    return render(request, 'accounts/new.html', {'form': form,})
+    return render(request, 'accounts/new.html', {'form': form, })
+
 
 def create(request):
     if request.method == 'POST':

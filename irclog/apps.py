@@ -6,4 +6,3 @@ class IrclogConfig(AppConfig):
 
     def ready(self):
         """register the signal to post log to irc"""
-        from .signals import check_log
