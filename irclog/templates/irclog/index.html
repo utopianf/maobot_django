@@ -49,7 +49,7 @@
 
 <!-- LogCreateForm -->
 {{ form.errors }}
-<form class="row" action="{% url 'irclog:index' %}" method="POST" enctype="multipart/form-data">
+<form id="createform" class="row" action="{% url 'irclog:index' %}" method="POST" enctype="multipart/form-data">
   {% csrf_token %}
   <input type="hidden" value="{{ current_user.username }}" id="{{ form.nick.label }}" name="{{ form.nick.name }}"/>
   <input type="hidden" value={{ channel.id }} id="current_channel" name="{{ form.channel.name }}"/>
@@ -70,7 +70,7 @@
 </form>
 
 <!-- SearchLogForm -->
-<form class="row" action="{% url 'irclog:index' %}" method="GET">
+<form id="searchform" class="row" action="{% url 'irclog:index' %}" method="GET">
   <input type="hidden" value="{{ channel.id }}" id="{{ search_form.search_channel.label }}" name="{{ search_form.search_channel.name }}"/>
   <label class="sr-only" for="{{ search_form.keyword.label }}">{{ search_form.keyword.label }}</label>
   <input type="text" class="col-2 form-control" name="{{ search_form.keyword.name }}" id="{{ search_form.keyword.id }}" placeholder="Keyword" value="{{ keyword }}" />
@@ -86,10 +86,13 @@
 </div>
 {% endblock content %}
 {% block extrabody %}
-  <script>$(function() {
-    $('#channelList a').on('click', function (e) {
+  <script>
+    $(function() {
+      $('#channelList a').on('click', function (e) {
        $('#current_channel').val($(this).attr('val'));
+      });
     });
-  });
+    $('#searchform').submit(function() {
+       $('
   </script>
 {% endblock %}

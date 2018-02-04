@@ -9,6 +9,7 @@
     {% csrf_token %}
     <div class="form-signin">
     <h2 class="form-signin-heading">ユーザー登録</h2>
+    <h3>passphraseはheiqi鯖の元共通パス</h3>
     {{ form.non_field_errors }}
     <label for="{{ form.username.id_for_label }}" class="sr-only">ユーザー名</label>
     <input type="text" id="{{ form.username.id_for_label }}" name="{{ form.username.name }}" class="form-control" placeholder="ユーザー名" required autofocus />
