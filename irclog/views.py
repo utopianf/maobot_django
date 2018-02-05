@@ -52,7 +52,7 @@ def get_irclog_info(start_at, end_at, keyword=''):
     :param keyword: find log with the keyword
     :return: a dict including a log list
     """
-    results = Log.objects.filter(created_at__range=(start_at, end_at)
+    results = Log.objects.filter(created_at__range=(start_at, end_at + datetime.timedelta(minutes=1))
                                  ).filter(message__contains=keyword).order_by('created_at')
     log_list = []
     for result in results:
@@ -90,9 +90,7 @@ def api_v1_post(request):
     :return:
     """
     if request.is_ajax() and request.method == 'POST':
-        print(request.POST)
         create_form = LogCreateForm(request.POST)
-        print(create_form.errors)
         if create_form.is_valid():
             create_form.save()
             return JsonResponse({'created_at': dt.now().strftime('%Y-%m-%d %H:%M:%S'),

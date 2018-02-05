@@ -9,7 +9,7 @@
         <nav class="col-2 d-none d-sm-block bg-light sidebar nav nav-pills">
             <div class="list-group" id="channelList" role="tablist">
             {% for c in channels %}
-                <a class="list-group-item list-group-item-action nav-link {% if channel.id == c.id %}active{% endif %}" data-toggle="list" href="#{{ c.id }}" role="tab" val="{{ c.id }}">
+                <a class="list-group-item list-group-item-action nav-link {% if channel.id == c.id %}active{% endif %}" id="channel_id_{{ c.id }}-tab" data-toggle="list" href="#channel_id_{{ c.id }}" role="tab" val="{{ c.id }}">
                     {{ c.name }}<br />{{ c.ircusers }}
                 </a>
             {% endfor %}
@@ -19,10 +19,11 @@
             <div class="tab-content" id="log-list">
 
             {% for c in channels %}
-                <div class="tab-pane {% if channel.id == c.id %}active{% endif %}" id="{{ c.id }}" role="tabpanel">
+                <div class="tab-pane {% if channel.id == c.id %}active{% endif %}" id="channel_id_{{ c.id }}" role="tabpanel" aria-labelledby="channel_id_{{ c.id }}-tab">
                     <div class="table-responsive">
                     <table class="table table-striped table-sm">
                     {% if log_list %}
+                        <tbody id="channel_id_{{ c.id }}_body">
                         {% for log in log_list %}
                             {% if log.channel.id == c.id %}
                                 <tr class="row no-gutters">
@@ -40,6 +41,7 @@
                             {% else %}
                             {% endif %}
                         {% endfor %}
+                        </tbody>
                     {% endif %}
                     </table>
                     </div>
@@ -70,8 +72,8 @@
             <div id="search-form" class="row">
                 <label class="sr-only" for="keyword">keyword</label>
                 <input type="text" class="col-2 form-control" name="keyword" id="keyword" placeholder="keyword" value="" />
-                <input type="datetime-local" class="col-3 form-control" name="start_at" required id="start_at" value="" />
-                <input type="datetime-local" class="col-3 form-control" name="end_at" required id="end_at" value="" />
+                <input type="datetime-local" class="col-3 form-control" name="start_at" required id="start_at" value="{{ start_at }}" />
+                <input type="datetime-local" class="col-3 form-control" name="end_at" required id="end_at" value="{{ end_at }}" />
                 <button id="search" onclick="submitSearchForm('{% url "irclog:api_v1_search" %}')" class="col-1 btn btn-light">search</button>
                 <button id="previous" onclick="submitSearchForm('{% url "irclog:api_v1_previous" %}')" class="col-1 btn btn-light" name="previous_duration">&lt;&lt;</button>
                 <button id="now" onclick="submitSearchForm('{% url "irclog:api_v1_now" %}')" class="col-1 btn btn-light" name="now">○</button>
@@ -101,32 +103,8 @@
                 }
             }
         });
-        function submitCreateForm() {
-            $.ajax({
-                url: '{% url "irclog:api_v1_post" %}',
-                type: 'POST',
-                data: {
-                    nick: $('#nick').val(),
-                    command: $('#command').val(),
-                    message: $('#message').val(),
-                    channel: $('#current_channel_id').val()
-                },
-                dataType: 'json',
-                success: function(response) {
-                    $('#end_at').val(response.end_at);
-                    var current_channel = $('#' + $('#current_channel_id')).val();
-                    current_channel.append('<tr class="row no-gutters">');
-                    current_channel.append('<td class="irc time">' + response.created_at + '</td>');
-                    current_channel.append('<td class="irc name"> (' + {{ current_user }} + ')</td>');
-                    current_channel.append('<td class="irc priv"> ' + response.message + '</td>');
-                    current_channel.append('</tr>');
-                }
-            });
-            return false;
-        }
         function submitSearchForm(url) {
-            var log_list = $('#log-list');
-            log_list.html('');
+            $('#message').val('');
             $.ajax({
                 url: url,
                 type: 'GET',
@@ -140,20 +118,40 @@
                     $('#start_at').val(response.start_at);
                     $('#end_at').val(response.end_at);
                     $.each(response.channel_id_list, function(_, channel_id) {
-                        $.each(response.log_list, function(_, log) {
-                            log_list.append('<tr class="row no-gutters">');
+                        var log_list = $("#channel_id_" + channel_id + "_body");
+                        log_list.html('');
+                        $.each(response.log_list, function(index, log) {
+                            log_list.append('<tr class="row no-gutters" id="tr' + index + '"></tr>');
+                            var tr = $("#tr" + index);
                             if (log.channel == channel_id) {
-                                log_list.append('<td class="irc time">' + log.created_at + '</td>');
-                                log_list.append('<td class="irc name"> (' + log.nick + ')</td>');
+                                tr.append('<td class="irc time">' + log.created_at + '</td>');
+                                tr.append('<td class="irc name"> (' + log.nick + ')</td>');
                                 if (log.command === "PRIVMSG") {
-                                    log_list.append('<td class="irc priv"> ' + log.message + '</td>');
+                                    tr.append('<td class="irc priv"> ' + log.message + '</td>');
                                 } else {
-                                    log_list.append('<td class="irc noti"> ' + log.message + '</td>');
+                                    tr.append('<td class="irc noti"> ' + log.message + '</td>');
                                 }
                             }
-                            log_list.append('</tr>');
                         })
                     })
+                }
+            });
+            return false;
+        }
+        function submitCreateForm() {
+            $.ajax({
+                url: '{% url "irclog:api_v1_post" %}',
+                type: 'POST',
+                data: {
+                    nick: $('#nick').val(),
+                    command: $('#command').val(),
+                    message: $('#message').val(),
+                    channel: $('#current_channel_id').val()
+                },
+                dataType: 'json',
+                success: function(response) {
+                    $('#end_at').val(response.end_at);
+                    submitSearchForm('{% url "irclog:api_v1_search" %}')
                 }
             });
             return false;
