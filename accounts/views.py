@@ -1,7 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseRedirect
-from django.shortcuts import render
-from django.urls import reverse
+from django.shortcuts import render, redirect
 
 from .forms import IrcUserCreationForm
 
@@ -22,7 +21,7 @@ def create(request):
         form = IrcUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('irclog/')
+            return redirect('irclog:index')
         return render(request, 'accounts/new.html', {'form': form,})
     else:
         raise Http404

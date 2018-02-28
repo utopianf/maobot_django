@@ -20,6 +20,9 @@ class Log(models.Model):
         'attached image', null=True, blank=True)
     created_at = models.DateTimeField('date created', default=timezone.now)
 
+    class Meta:
+        ordering = ['-id']
+
     def __str__(self):
         return '%s [%s] %s: %s' % (
                 self.created_at.strftime('%Y-%m-%d %H:%M:%S'), 
