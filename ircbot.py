@@ -16,6 +16,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'maobot.settings')
 django.setup()
 from irclog.models import Channel, Log
 
+
 @irc3.plugin
 class MyPlugin:
     """A plugin is a class which take the IrcBot as argument
@@ -29,13 +30,9 @@ class MyPlugin:
         'irc3.plugins.async',
     ]
 
-
     def __init__(self, bot):
         self.bot = bot
         self.log = bot.log
-#        result = yield from bot.async_cmds.whois(nick=bot.nick)
-#        print(result)
-#        self.channels = bot.async_cmds.whois(nick=bot.nick)
 
     def connection_made(self):
         """triggered when connection is up"""
@@ -62,7 +59,7 @@ class MyPlugin:
         """Check who is in the channel each minute"""
         result = yield from self.bot.async_cmds.whois(nick=self.bot.nick)
         for channel in result['channels']:
-            userstr = ", ".join([u for u in self.bot.channels[channel] if u!=''])
+            userstr = ", ".join([u for u in self.bot.channels[channel] if u != ''])
             channel = Channel.objects.get(name__exact=channel)
             channel.ircusers = userstr
             channel.save()
@@ -77,7 +74,6 @@ class MyPlugin:
 
     @irc3.event(irc3.rfc.PRIVMSG)
     def on_privmsg(self, mask=None, data=None, target=None, **kw):
-        print(target)
         try:
             channel = Channel.objects.get(name__exact=target)
             nick = mask.split('!')[0]
@@ -135,28 +131,30 @@ def goodbye():
     os.remove('./media/ircon')
     print("Goodbye.")
 
+
 atexit.register(goodbye)
 signal.signal(signal.SIGTERM, goodbye)
 signal.signal(signal.SIGINT, goodbye)
+
 
 def main():
     # instanciate a bot
     Path('media/ircon').touch()
     channels = [c.name for c in Channel.objects.all()]
     config = {
-            'nick': 'maobot_test', 'autojoins': channels,
-            'host': 'dh.ircnet.ne.jp', 'port': 6667, 'ssl': False,
-            'encoding': 'ISO-2022-JP',
-            'includes': [
-                'irc3.plugins.core',
-                'irc3.plugins.command',
-                'irc3.plugins.human',
-                'irc3.plugins.fifo',
-                'irc3.plugins.userlist',
-                'irc3.plugins.async',
-                __name__,  # this register MyPlugin
-                ],
-            'irc3.plugins.fifo': {'runpath': '/tmp/run/irc3'}
+        'nick': 'maobot_test', 'autojoins': channels,
+        'host': 'dh.ircnet.ne.jp', 'port': 6667, 'ssl': False,
+        'encoding': 'ISO-2022-JP',
+        'includes': [
+            'irc3.plugins.core',
+            'irc3.plugins.command',
+            'irc3.plugins.human',
+            'irc3.plugins.fifo',
+            'irc3.plugins.userlist',
+            'irc3.plugins.async',
+            __name__,  # this register MyPlugin
+        ],
+        'irc3.plugins.fifo': {'runpath': '/tmp/run/irc3'}
     }
     bot = irc3.IrcBot.from_config(config)
     bot.run(forever=True)

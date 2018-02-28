@@ -8,7 +8,7 @@ from django.core.files import File
 from django.utils import timezone
 
 from ircimages.models import Image
-from .models import Channel, Log
+from .models import Log
 
 DEFAULT_START_AT = timezone.now() - datetime.timedelta(hours=3)
 DEFAULT_END_AT = timezone.now()

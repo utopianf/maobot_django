@@ -1,26 +1,25 @@
 import datetime
 from datetime import datetime as dt
-import os
-import subprocess
 import re
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.utils import timezone
-from django.views.generic import ListView
+from django.views.generic import CreateView
 
 from .forms import LogCreateForm
 from .models import Channel, Log
 
 
 # Create your views here.
-class IndexView(LoginRequiredMixin, ListView):
+class IndexView(LoginRequiredMixin, CreateView):
     """
     path: /irclog/
     Just an index.
     """
     template_name = 'irclog/index.html'
     model = Log
+    form_class = LogCreateForm
 
     login_url = 'accounts:login'
     redirect_field_name = 'redirect_to'
@@ -91,11 +90,13 @@ def api_v1_post(request):
     """
     if request.is_ajax() and request.method == 'POST':
         create_form = LogCreateForm(request.POST)
+        print(request.POST.attached_image)
         if create_form.is_valid():
             create_form.save()
-            return JsonResponse({'created_at': dt.now().strftime('%Y-%m-%d %H:%M:%S'),
-                                 'end_at': dt.now().strftime('%Y-%m-%dT%H:%M:%S'),
-                                 'message': create_form.cleaned_data.get('message')})
+            return JsonResponse({'created_at': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                 'end_at': timezone.now().strftime('%Y-%m-%dT%H:%M:%S'),
+                                 'message': create_form.cleaned_data.get('message'),
+                                 'channel': create_form.cleaned_data.get('channel').id})
 
 
 # SearchLogForm

@@ -1,14 +1,19 @@
 import os
 import re
 import subprocess
+from io import BytesIO
 import urllib.request
 import uuid
 from imghdr import what
 
 import requests
 from bs4 import BeautifulSoup
+import PIL
+
 from django.core.files import File
+from django.core.files.base import ContentFile
 from django.core.files.temp import NamedTemporaryFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -19,12 +24,38 @@ from .models import Log
 
 def image_from_response(response, image):
     if response.status_code == requests.codes.ok:
-        img_temp = NamedTemporaryFile(delete=True)
+        img_temp = NamedTemporaryFile()
         img_temp.write(response.content)
         ext = what(img_temp.name)
-        image.extension = ext
+
         img_temp.flush()
-        image.image.save(str(uuid.uuid4()).replace('-', ''), File(img_temp))
+        filename = '%s.%s' % (str(uuid.uuid4()).replace('-', ''), ext)
+        # image file
+        image.image.save(filename, File(img_temp))
+        # thumbnail
+        size = 150
+        img = PIL.Image.open(img_temp)
+        w, h = img.size
+        l, t, r, b = 0, 0, size, size
+        new_w, new_h = size, size
+
+        if w >= h:
+            new_w = size * w // h
+            l = (new_w - size) // 2
+            r = new_w - l
+        else:
+            new_h = size * h // w
+            t = (new_h - size) // 2
+            b = new_h - t
+
+        thumb = img.resize((new_w, new_h), PIL.Image.ANTIALIAS)
+        thumb = thumb.crop((l, t, r, b))
+        thumb_io = BytesIO()
+        thumb.save(thumb_io, format=ext)
+
+        thumb_file = InMemoryUploadedFile(ContentFile(thumb_io.getvalue()), None, 't_' + filename, 'image/' + ext,
+                                          ContentFile(thumb_io.getvalue()).tell, None)
+        image.thumb.save('t_' + filename, thumb_file)
         return image
     return None
 
@@ -48,7 +79,7 @@ def check_log(instance, **kwargs):
                 cmd = "echo '%s' > /tmp/run/irc3/:raw" % sendstr
                 if os.path.isdir('/tmp/run/irc3'):
                     subprocess.call(cmd, shell=True)
-            except:
+            except (AttributeError, TypeError):
                 pass
 
             # image dl
@@ -62,7 +93,6 @@ def check_log(instance, **kwargs):
             if twitter_pat.match(url):
                 images = soup.findAll('div', {'class': 'AdaptiveMedia-photoContainer'})
                 for image in images:
-                    print("twitter image")
                     image_url = image.find('img')['src']
                     img = image_from_response(requests.Session().get(image_url),
                                               Image(original_url=url, related_log=log))

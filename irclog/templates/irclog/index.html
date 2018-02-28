@@ -121,9 +121,9 @@
                         var log_list = $("#channel_id_" + channel_id + "_body");
                         log_list.html('');
                         $.each(response.log_list, function(index, log) {
-                            log_list.append('<tr class="row no-gutters" id="tr' + index + '"></tr>');
-                            var tr = $("#tr" + index);
                             if (log.channel == channel_id) {
+                                log_list.append('<tr class="row no-gutters" id="tr' + index + '"></tr>');
+                                var tr = $("#tr" + index);
                                 tr.append('<td class="irc time">' + log.created_at + '</td>');
                                 tr.append('<td class="irc name"> (' + log.nick + ')</td>');
                                 if (log.command === "PRIVMSG") {
@@ -139,19 +139,24 @@
             return false;
         }
         function submitCreateForm() {
+            var formData = new FormData();
+            formData.append('attached_image', $('#attached_image')[0].files[0]);
+            formData.append('nick', $('#nick').val());
+            formData.append('command', $('#command').val());
+            formData.append('message', $('#message').val());
+            formData.append('channel', $('#current_channel_id').val());
+            console.log(formData.nick);
             $.ajax({
                 url: '{% url "irclog:api_v1_post" %}',
                 type: 'POST',
-                data: {
-                    nick: $('#nick').val(),
-                    command: $('#command').val(),
-                    message: $('#message').val(),
-                    channel: $('#current_channel_id').val()
-                },
-                dataType: 'json',
+                data: formData,
+                //dataType: 'json',
+                contentType: false,
+                processData: false,
+                cache: false,
                 success: function(response) {
                     $('#end_at').val(response.end_at);
-                    submitSearchForm('{% url "irclog:api_v1_search" %}')
+                    submitSearchForm('{% url "irclog:api_v1_now" %}')
                 }
             });
             return false;
