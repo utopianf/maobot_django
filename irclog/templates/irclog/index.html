@@ -5,94 +5,156 @@
 {% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <div class="row">
-  <nav class="col-2 d-none d-sm-block bg-light sidebar nav nav-pills">
-  <div class="list-group" id="channelList" role="tablist">
-     {% for c in channels %}
-     <a class="list-group-item list-group-item-action nav-link {% if channel.id == c.id %}active{% endif %}" data-toggle="list" href="#{{ c.id }}" role="tab" val="{{ c.id }}">
-             {{ c.name }}<br />{{ c.ircusers }}
-     </a>
-     {% endfor %}
-  </div>
-  </nav>
-  <main role="main" class="col-10 ml-sm-auto pt-3">
-    <div class="tab-content" id="nav-tabContent">
+    <div class="row">
+        <nav class="col-2 d-none d-sm-block bg-light sidebar nav nav-pills">
+            <div class="list-group" id="channelList" role="tablist">
+            {% for c in channels %}
+                <a class="list-group-item list-group-item-action nav-link {% if channel.id == c.id %}active{% endif %}" id="channel_id_{{ c.id }}-tab" data-toggle="list" href="#channel_id_{{ c.id }}" role="tab" val="{{ c.id }}">
+                    {{ c.name }}<br />{{ c.ircusers }}
+                </a>
+            {% endfor %}
+            </div>
+        </nav>
+        <main role="main" class="col-10 ml-sm-auto pt-3">
+            <div class="tab-content" id="log-list">
 
-    {% for c in channels %}
-    <div class="tab-pane {% if channel.id == c.id %}active{% endif %}" id="{{ c.id }}" role="tabpanel">
-    <div class="table-responsive">
-    <table class="table table-striped table-sm">
-    {% if log_list %}
-    {% for log in log_list %}
-    {% if log.channel.id == c.id %}
-    <tr class="row no-gutters">
-      <td class="irc time">{{ log.created_at|date:"Y-m-d" }} {{ log.created_at|time:"H:i:s" }}</td>
-      <td class="irc name">({{ log.nick }})</td>
-      <td class="irc {% if log.command == "PRIVMSG" %}priv{% elif log.command == "NOTICE" or "JOIN" %}noti{% endif %}">{{ log.message|urlize|linebreaksbr }}</td>
-    </tr>
-      {% if log.attached_image %}
-          <tr class="row no-gutters">
-            <td><img src="{{ MEDIA_URL }}/media/{{ log.attached_image }}" /></td>
-          </tr>
-      {% endif %}
-      {% if log.video %}
-      {% endif %}
-    {% else %}
-    {% endif %}
-    {% endfor %}
-    {% endif %}
-    </table>
+            {% for c in channels %}
+                <div class="tab-pane {% if channel.id == c.id %}active{% endif %}" id="channel_id_{{ c.id }}" role="tabpanel" aria-labelledby="channel_id_{{ c.id }}-tab">
+                    <div class="table-responsive">
+                    <table class="table table-striped table-sm">
+                    {% if log_list %}
+                        <tbody id="channel_id_{{ c.id }}_body">
+                        {% for log in log_list %}
+                            {% if log.channel.id == c.id %}
+                                <tr class="row no-gutters">
+                                    <td class="irc time">{{ log.created_at|date:"Y-m-d" }} {{ log.created_at|time:"H:i:s" }}</td>
+                                    <td class="irc name">({{ log.nick }})</td>
+                                    <td class="irc {% if log.command == "PRIVMSG" %}priv{% elif log.command == "NOTICE" or "JOIN" %}noti{% endif %}">{{ log.message|urlize|linebreaksbr }}</td>
+                                </tr>
+                                {% if log.attached_image %}
+                                <tr class="row no-gutters">
+                                    <td><img src="{{ MEDIA_URL }}/media/{{ log.attached_image }}" /></td>
+                                </tr>
+                                {% endif %}
+                                {% if log.video %}
+                                {% endif %}
+                            {% else %}
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+                    {% endif %}
+                    </table>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+
+            <!-- LogCreateForm -->
+            <div id="create-form" class="row">
+                {% csrf_token %}
+                <input type="hidden" value="{{ current_user.username }}" id="nick" name="nick"/>
+                <input type="hidden" value="1" id="current_channel_id" name="channel"/>
+
+                <label class="sr-only" for="command">command</label>
+                <select class="col-1 form-control" name="command" required id="command">
+                    <option value="PRIVMSG" selected>privmsg</option>
+                    <option value="NOTICE">notice</option>
+                </select>
+
+                <label class="sr-only" for="message">message</label>
+                <input type="text" class="col-8 form-control" name="message" required id="message" placeholder="Message" />
+                <label for="attached_image" class="sr-only">attached_image</label>
+                <input type="file" class="col-2" name="attached_image" id="attached_image">
+                <button onclick="submitCreateForm()" class="col-1 btn btn-primary">送信</button>
+            </div>
+
+            <!-- SearchLogForm -->
+            <div id="search-form" class="row">
+                <label class="sr-only" for="keyword">keyword</label>
+                <input type="text" class="col-2 form-control" name="keyword" id="keyword" placeholder="keyword" value="" />
+                <input type="datetime-local" class="col-3 form-control" name="start_at" required id="start_at" value="{{ start_at }}" />
+                <input type="datetime-local" class="col-3 form-control" name="end_at" required id="end_at" value="{{ end_at }}" />
+                <button id="search" onclick="submitSearchForm('{% url "irclog:api_v1_search" %}')" class="col-1 btn btn-light">search</button>
+                <button id="previous" onclick="submitSearchForm('{% url "irclog:api_v1_previous" %}')" class="col-1 btn btn-light" name="previous_duration">&lt;&lt;</button>
+                <button id="now" onclick="submitSearchForm('{% url "irclog:api_v1_now" %}')" class="col-1 btn btn-light" name="now">○</button>
+                <button id="next" onclick="submitSearchForm('{% url "irclog:api_v1_next" %}')" class="col-1 btn btn-light" name="next_duration">&gt;&gt;</button>
+            </div>
+        </main>
     </div>
-    </div>
-    {% endfor %}
-    </div>
-
-<!-- LogCreateForm -->
-{{ form.errors }}
-<form id="createform" class="row" action="{% url 'irclog:index' %}" method="POST" enctype="multipart/form-data">
-  {% csrf_token %}
-  <input type="hidden" value="{{ current_user.username }}" id="{{ form.nick.label }}" name="{{ form.nick.name }}"/>
-  <input type="hidden" value={{ channel.id }} id="current_channel" name="{{ form.channel.name }}"/>
-
-  <label class="sr-only" for="{{ form.channel.id_for_label }}">{{ form.channel.label }}</label>
-  <label class="sr-only" for="{{ form.command.id_for_label }}">{{ form.command.label }}</label>
-  <select class="col-1 form-control" name="{{ form.command.name }}" required id="{{ form.command.label }}">
-    {% for c in form.command %}
-    {{ c }}
-    {% endfor %}
-  </select>
-
-  <label class="sr-only" for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
-  <input type="text" class="col-8 form-control" name="{{ form.message.name }}" required id="{{ form.message.label }}" placeholder="Message" />
-  <label for="{{ form.attached_image.id_for_label }}" class="sr-only">attached_image</label>
-  <input type="file" class="col-2" name="{{ form.attached_image.name }}" id="{{ form.attached_image.label }}">
-  <button type="submit" class="col-1 btn btn-primary">送信</button>
-</form>
-
-<!-- SearchLogForm -->
-<form id="searchform" class="row" action="{% url 'irclog:index' %}" method="GET">
-  <input type="hidden" value="{{ channel.id }}" id="{{ search_form.search_channel.label }}" name="{{ search_form.search_channel.name }}"/>
-  <label class="sr-only" for="{{ search_form.keyword.label }}">{{ search_form.keyword.label }}</label>
-  <input type="text" class="col-2 form-control" name="{{ search_form.keyword.name }}" id="{{ search_form.keyword.id }}" placeholder="Keyword" value="{{ keyword }}" />
-  <input type="datetime-local" class="col-3 form-control" name="{{ search_form.start_at.name }}" required id="{{ search_form.start_at.id_for_label }}" value={{ start_at }} />
-  <input type="datetime-local" class="col-3 form-control" name="{{ search_form.end_at.name }}" required id="{{ search_form.end_at.id_for_label }}" value={{ end_at }} />
-  <button type="submit" class="col-1 btn btn-light">search</button>
-  <button type="submit" class="col-1 btn btn-light" name="previous_duration">&lt;&lt;</button>
-  <button type="submit" class="col-1 btn btn-light" name="now">○</button>
-  <button type="submit" class="col-1 btn btn-light" name="next_duration">&gt;&gt;</button>
-</form>
-</main>
-  </div>
 </div>
 {% endblock content %}
 {% block extrabody %}
-  <script>
-    $(function() {
-      $('#channelList a').on('click', function (e) {
-       $('#current_channel').val($(this).attr('val'));
-      });
-    });
-    $('#searchform').submit(function() {
-       $('
-  </script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+    <script>
+        $(function() {
+            $('#channelList a').on('click', function (_) {
+                $('#current_channel_id').val($(this).attr('val'));
+            });
+        });
+        function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        var csrftoken = Cookies.get('csrftoken');
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        function submitSearchForm(url) {
+            $('#message').val('');
+            $.ajax({
+                url: url,
+                type: 'GET',
+                data: {
+                    'start_at': $('#start_at').val(),
+                    'end_at': $('#end_at').val(),
+                    'keyword': $('#keyword').val()
+                },
+                dataType: 'json',
+                success: function(response){
+                    $('#start_at').val(response.start_at);
+                    $('#end_at').val(response.end_at);
+                    $.each(response.channel_id_list, function(_, channel_id) {
+                        var log_list = $("#channel_id_" + channel_id + "_body");
+                        log_list.html('');
+                        $.each(response.log_list, function(index, log) {
+                            log_list.append('<tr class="row no-gutters" id="tr' + index + '"></tr>');
+                            var tr = $("#tr" + index);
+                            if (log.channel == channel_id) {
+                                tr.append('<td class="irc time">' + log.created_at + '</td>');
+                                tr.append('<td class="irc name"> (' + log.nick + ')</td>');
+                                if (log.command === "PRIVMSG") {
+                                    tr.append('<td class="irc priv"> ' + log.message + '</td>');
+                                } else {
+                                    tr.append('<td class="irc noti"> ' + log.message + '</td>');
+                                }
+                            }
+                        })
+                    })
+                }
+            });
+            return false;
+        }
+        function submitCreateForm() {
+            $.ajax({
+                url: '{% url "irclog:api_v1_post" %}',
+                type: 'POST',
+                data: {
+                    nick: $('#nick').val(),
+                    command: $('#command').val(),
+                    message: $('#message').val(),
+                    channel: $('#current_channel_id').val()
+                },
+                dataType: 'json',
+                success: function(response) {
+                    $('#end_at').val(response.end_at);
+                    submitSearchForm('{% url "irclog:api_v1_search" %}')
+                }
+            });
+            return false;
+        }
+    </script>
 {% endblock %}

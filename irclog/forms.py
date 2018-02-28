@@ -1,4 +1,6 @@
 import datetime
+import os
+import subprocess
 import uuid
 
 from django import forms
@@ -16,14 +18,24 @@ INPUT_FORMATS = ['%Y-%m-%dT%H:%M:%S']
 class LogCreateForm(forms.ModelForm):
     """Form to create log with image."""
 
-    # attached_image = Image()
-
     class Meta:
         model = Log
         fields = ('channel', 'nick', 'command', 'message', 'attached_image')
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+
+        # send to irc
+        command = self.cleaned_data.get('command')
+        channel = self.cleaned_data.get('channel')
+        sendstr = "%s %s :(%s) %s" % (command, channel,
+                                      self.cleaned_data.get('nick'),
+                                      self.cleaned_data.get('message'))
+        cmd = "echo '%s' > /tmp/run/irc3/:raw" % sendstr
+        if os.path.isdir("/tmp/run/irc3"):
+            subprocess.call(cmd, shell=True)
+
+        # handle attached image
         img_temp = self.cleaned_data.get('attached_image')
         if img_temp:
             image = Image(related_log=instance)
@@ -32,27 +44,3 @@ class LogCreateForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
-
-
-class LogSearchForm(forms.Form):
-    start_at = forms.DateTimeField(
-        initial=DEFAULT_START_AT,
-        input_formats=INPUT_FORMATS)
-    end_at = forms.DateTimeField(
-        initial=DEFAULT_END_AT,
-        input_formats=INPUT_FORMATS)
-    keyword = forms.CharField(required=False)
-    search_channel = forms.ModelChoiceField(Channel.objects.all(),
-                                            widget=forms.HiddenInput())
-
-
-class ChannelSwitchForm(forms.Form):
-    start_at = forms.DateTimeField(
-        initial=DEFAULT_START_AT,
-        input_formats=INPUT_FORMATS,
-        widget=forms.HiddenInput())
-    end_at = forms.DateTimeField(
-        initial=DEFAULT_START_AT,
-        input_formats=INPUT_FORMATS,
-        widget=forms.HiddenInput())
-    switch_to_channel = forms.ModelChoiceField(Channel.objects.all())

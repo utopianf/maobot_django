@@ -25,7 +25,7 @@ SECRET_KEY = 'lrs49i2*4)kko84zu(m-0ul6r%@pzp3&euz(ak6n3ha3&5yuy1'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.vert-utopia.com', 'vert-utopia.com', 'fp276fe74d.tkyc001.ap.nuro.jp']
+ALLOWED_HOSTS = ['www.vert-utopia.com', 'vert-utopia.com', 'fp276fe74d.tkyc001.ap.nuro.jp', 'localhost']
 
 
 # Application definition
