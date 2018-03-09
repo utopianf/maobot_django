@@ -10,5 +10,3 @@ class ImageListView(ListView):
     context_object_name = 'image_list'
     paginate_by = 50
 
-    class Meta:
-        ordering = ['id']

@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'imagekit',
     'mod_wsgi.server',
     'irclog.apps.IrclogConfig',
     'ircimages.apps.IrcimagesConfig',

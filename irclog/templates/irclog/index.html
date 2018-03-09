@@ -14,6 +14,9 @@
                 </a>
             {% endfor %}
             </div>
+            <button id="image_button" onclick="imageButton()" type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
+                image
+            </button>
         </nav>
         <main role="main" class="col-10 ml-sm-auto pt-3">
             <div class="tab-content" id="log-list">
@@ -62,9 +65,9 @@
                 </select>
 
                 <label class="sr-only" for="message">message</label>
-                <input type="text" class="col-8 form-control" name="message" required id="message" placeholder="Message" />
+                <input type="text" class="col-10 form-control" name="message" required id="message" placeholder="Message" />
                 <label for="attached_image" class="sr-only">attached_image</label>
-                <input type="file" class="col-2" name="attached_image" id="attached_image">
+                <!--input type="file" class="col-2" name="attached_image" id="attached_image"-->
                 <button onclick="submitCreateForm()" class="col-1 btn btn-primary">送信</button>
             </div>
 
@@ -131,6 +134,9 @@
                                 } else {
                                     tr.append('<td class="irc noti"> ' + log.message + '</td>');
                                 }
+                                if (log.attached_image_url) {
+                                        tr.append('<td class="attached_image" style="display: none"><img src="{{ MEDIA_URL }}' + log.attached_image_url + '" /></td>');
+                                }
                             }
                         })
                     })
@@ -140,12 +146,11 @@
         }
         function submitCreateForm() {
             var formData = new FormData();
-            formData.append('attached_image', $('#attached_image')[0].files[0]);
+            //formData.append('attached_image', $('#attached_image')[0].files[0]);
             formData.append('nick', $('#nick').val());
             formData.append('command', $('#command').val());
             formData.append('message', $('#message').val());
             formData.append('channel', $('#current_channel_id').val());
-            console.log(formData.nick);
             $.ajax({
                 url: '{% url "irclog:api_v1_post" %}',
                 type: 'POST',
@@ -155,11 +160,18 @@
                 processData: false,
                 cache: false,
                 success: function(response) {
-                    $('#end_at').val(response.end_at);
                     submitSearchForm('{% url "irclog:api_v1_now" %}')
                 }
             });
+            $('#create-form')[0].scrollIntoView(true);
             return false;
+        }
+        function imageButton() {
+            if ($('#image_button').attr('aria-pressed') === 'true') {
+               $(".attached_image").show();
+            } else {
+               $(".attached_image").hide();
+            }
         }
     </script>
 {% endblock %}

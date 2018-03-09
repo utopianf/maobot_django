@@ -63,15 +63,14 @@ def get_irclog_info(start_at, end_at, keyword=''):
             for f in find:
                 url = message[f.start():f.end()]
                 message = message[:f.start()] + '<a href="' + url + '">' + url + '</a>' + message[f.end():]
+        log = {'created_at': result.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+               'command': result.command,
+               'message': message,
+               'channel': result.channel.id,
+               'nick': result.nick}
         if result.attached_image:
-            pass  # TODO: handle with attached_image
-        else:
-            log = {'created_at': result.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                   'command': result.command,
-                   'message': message,
-                   'channel': result.channel.id,
-                   'nick': result.nick}
-            log_list.append(log)
+            log['attached_image_url'] = result.attached_image.url
+        log_list.append(log)
     irclog_info = {
         'log_list': log_list,
         'start_at': start_at.strftime('%Y-%m-%dT%H:%M:%S'),
@@ -90,7 +89,6 @@ def api_v1_post(request):
     """
     if request.is_ajax() and request.method == 'POST':
         create_form = LogCreateForm(request.POST)
-        print(request.POST.attached_image)
         if create_form.is_valid():
             create_form.save()
             return JsonResponse({'created_at': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),

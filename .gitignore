@@ -32,3 +32,7 @@ media
 
 
 # End of https://www.gitignore.io/api/linux,django
+#
+#
+watcher.sh
+nohup.out

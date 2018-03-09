@@ -24,6 +24,7 @@ class LogCreateForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+        instance.is_irc = False
 
         # send to irc
         command = self.cleaned_data.get('command')

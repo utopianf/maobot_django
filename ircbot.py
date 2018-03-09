@@ -5,16 +5,9 @@ import sys
 import os
 from pathlib import Path
 
-import django
-
 from irc3.plugins.command import command
 from irc3.plugins.cron import cron
 import irc3
-
-sys.path.append('.')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'maobot.settings')
-django.setup()
-from irclog.models import Channel, Log
 
 
 @irc3.plugin
@@ -48,19 +41,18 @@ class MyPlugin:
         """Welcome people who join a channel"""
         if mask.nick != self.bot.nick:
             self.bot.call_with_human_delay(
-                self.bot.privmsg, channel, 'Welcome %s!' % mask.nick)
+                self.bot.privmsg, channel, 'ようこそ〜 %s!' % mask.nick)
         else:
             self.bot.call_with_human_delay(
-                self.bot.privmsg, channel, "Hi guys!")
+                self.bot.privmsg, channel, "どうも〜")
 
     @cron('* * * * *')
     @irc3.asyncio.coroutine
     def get_users(self):
         """Check who is in the channel each minute"""
         result = yield from self.bot.async_cmds.whois(nick=self.bot.nick)
-        for channel in result['channels']:
-            userstr = ", ".join([u for u in self.bot.channels[channel] if u != ''])
-            channel = Channel.objects.get(name__exact=channel)
+        for channel in Channel.objects.all():
+            userstr = ", ".join([u for u in self.bot.channels[channel.name] if u != ''])
             channel.ircusers = userstr
             channel.save()
 
@@ -107,24 +99,6 @@ class MyPlugin:
         except:
             pass
 
-    @command
-    def stats(self, mask, target, args):
-        """Show stats of the channel using the userlist plugin
-
-            %%stats [<channel>]
-        """
-        if args['<channel>']:
-            channel = args['<channel>']
-            target = mask.nick
-        else:
-            channel = target
-        if channel in self.bot.channels:
-            channel = self.bot.channels[channel]
-            message = '{0} users'.format(len(channel))
-            for mode, nicknames in sorted(channel.modes.items()):
-                message += ' - {0}({1})'.format(mode, len(nicknames))
-            self.bot.privmsg(target, message)
-
 
 def goodbye():
     shutil.rmtree('/tmp/run/irc3')
@@ -141,9 +115,10 @@ def main():
     # instanciate a bot
     Path('media/ircon').touch()
     channels = [c.name for c in Channel.objects.all()]
+    #channels = ['#maobot_test']
     config = {
         'nick': 'maobot_test', 'autojoins': channels,
-        'host': 'dh.ircnet.ne.jp', 'port': 6667, 'ssl': False,
+        'host': 'irc.ircnet.ne.jp', 'port': 6667, 'ssl': False,
         'encoding': 'ISO-2022-JP',
         'includes': [
             'irc3.plugins.core',
@@ -161,4 +136,9 @@ def main():
 
 
 if __name__ == '__main__':
+    sys.path.append('.')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'maobot.settings')
+    import django
+    django.setup()
+    from irclog.models import Log, Channel
     main()

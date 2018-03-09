@@ -19,11 +19,14 @@ class Image(models.Model):
                                     null=True, on_delete=models.SET_NULL)
     caption = models.CharField('Caption', max_length=20, null=True)
     extension = models.CharField('Extension', max_length=10, null=True)
-    image = models.ImageField()
-    thumb = models.ImageField(upload_to='thumb/')
+    image = models.ImageField(null=True)
+    thumb = models.ImageField(upload_to='thumb/',null=True)
     created_at = models.DateTimeField(default=timezone.now)
     image_set = models.ForeignKey('ImageSet', related_name='images',
                                   null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 class ImageSet(models.Model):

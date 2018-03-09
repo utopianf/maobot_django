@@ -3,6 +3,7 @@ import re
 import subprocess
 from io import BytesIO
 import urllib.request
+from urllib.error import HTTPError
 import uuid
 from imghdr import what
 
@@ -79,7 +80,7 @@ def check_log(instance, **kwargs):
                 cmd = "echo '%s' > /tmp/run/irc3/:raw" % sendstr
                 if os.path.isdir('/tmp/run/irc3'):
                     subprocess.call(cmd, shell=True)
-            except (AttributeError, TypeError):
+            except (AttributeError, TypeError, HTTPError):
                 pass
 
             # image dl
@@ -113,6 +114,7 @@ def check_log(instance, **kwargs):
                 img = image_from_response(requests.Session().get(image_url),
                                           Image(original_url=url, related_log=log))
                 img.save()
+                Log.objects.filter(id=log.id).update(attached_image=img.thumb)
             elif pixiv_pat.match(url):
                 from pixivpy3 import AppPixivAPI
                 from urllib.parse import parse_qs
@@ -135,3 +137,4 @@ def check_log(instance, **kwargs):
                     img = image_from_response(response,
                                               Image(original_url=url, related_log=log))
                     img.save()
+                    Log.objects.filter(id=log.id).update(attached_image=img.thumb)
