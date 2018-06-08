@@ -28,6 +28,8 @@ def image_from_response(response, image):
         img_temp = NamedTemporaryFile()
         img_temp.write(response.content)
         ext = what(img_temp.name)
+        if ext is None:
+            return None
 
         img_temp.flush()
         filename = '%s.%s' % (str(uuid.uuid4()).replace('-', ''), ext)
@@ -92,7 +94,7 @@ def check_log(instance, **kwargs):
                 'https://twitter.com/[a-zA-Z0-9_]+/status/\d+')
 
             if twitter_pat.match(url):
-                images = soup.findAll('div', {'class': 'AdaptiveMedia-photoContainer'})
+                images = bsObj.find("div", {"class": "permalink-tweet-container"}).find("div", {"class": "AdaptiveMedia-container"}).findAll("div", {"class": "AdaptiveMedia-photoContainer"})
                 for image in images:
                     image_url = image.find('img')['src']
                     img = image_from_response(requests.Session().get(image_url),

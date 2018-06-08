@@ -36,7 +36,7 @@
                                 </tr>
                                 {% if log.attached_image %}
                                 <tr class="row no-gutters">
-                                    <td><img src="{{ MEDIA_URL }}/media/{{ log.attached_image }}" /></td>
+                                    <td class="attached_image" style="display: none"><img src="{{ MEDIA_URL }}/media/{{ log.attached_image }}" /></td>
                                 </tr>
                                 {% endif %}
                                 {% if log.video %}
@@ -89,6 +89,7 @@
 {% block extrabody %}
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
     <script>
+        shown_image = false;
         $(function() {
             $('#channelList a').on('click', function (_) {
                 $('#current_channel_id').val($(this).attr('val'));
@@ -135,7 +136,11 @@
                                     tr.append('<td class="irc noti"> ' + log.message + '</td>');
                                 }
                                 if (log.attached_image_url) {
+                                    if (shown_image) {
+                                        tr.append('<td class="attached_image"><img src="{{ MEDIA_URL }}' + log.attached_image_url + '" /></td>');
+                                    } else {
                                         tr.append('<td class="attached_image" style="display: none"><img src="{{ MEDIA_URL }}' + log.attached_image_url + '" /></td>');
+                                    }
                                 }
                             }
                         })
@@ -167,9 +172,11 @@
             return false;
         }
         function imageButton() {
-            if ($('#image_button').attr('aria-pressed') === 'true') {
+            if ($('#image_button').attr('aria-pressed') === 'false') {
+               shown_image = true;
                $(".attached_image").show();
             } else {
+               shown_image = false;
                $(".attached_image").hide();
             }
         }
