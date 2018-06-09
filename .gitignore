@@ -36,3 +36,4 @@ media
 #
 watcher.sh
 nohup.out
+restart.sh

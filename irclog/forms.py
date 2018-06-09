@@ -26,16 +26,6 @@ class LogCreateForm(forms.ModelForm):
         instance = super().save(commit=False)
         instance.is_irc = False
 
-        # send to irc
-        command = self.cleaned_data.get('command')
-        channel = self.cleaned_data.get('channel')
-        sendstr = "%s %s :(%s) %s" % (command, channel,
-                                      self.cleaned_data.get('nick'),
-                                      self.cleaned_data.get('message'))
-        cmd = "echo '%s' > /tmp/run/irc3/:raw" % sendstr
-        if os.path.isdir("/tmp/run/irc3"):
-            subprocess.call(cmd, shell=True)
-
         # handle attached image
         img_temp = self.cleaned_data.get('attached_image')
         if img_temp:

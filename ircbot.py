@@ -15,7 +15,7 @@ django.setup()
 from irclog.models import Log, Channel
 
 
-def goodbye(signum, frame):
+def goodbye():
     os.remove('./media/ircon')
     print("Goodbye.")
 
@@ -61,12 +61,18 @@ class MaoBot(SingleServerIRCBot):
             channel.save()
 
         end_time = datetime.datetime.now()
-        start_time = end_time - datetime.timedelta(seconds=10)
+        start_time = end_time - datetime.timedelta(seconds=60)
         qs = Log.objects.filter(created_at__range=(start_time, end_time))
         for log in qs:
             if not log.is_irc:
-                send_message = '(%s) %s' % (log.nick, log.message)
-                self.connection.privmsg(log.channel.name, send_message)
+                if log.nick == 'maobot':
+                    send_message = log.message
+                else:
+                    send_message = '(%s) %s' % (log.nick, log.message)
+                if log.command == 'NOTICE':
+                    self.connection.notice(log.channel.name, send_message)
+                elif log.command == 'PRIVMSG':
+                    self.connection.privmsg(log.channel.name, send_message)
         qs.update(is_irc=True)
 
 def main():

@@ -30,11 +30,8 @@ class IndexView(LoginRequiredMixin, CreateView):
         start_at = timezone.now() - datetime.timedelta(hours=3)
         channel = Channel.objects.all()[0]
 
-        qs = Log.objects.filter(created_at__range=(start_at, end_at)).order_by('created_at')
-
         # Make context
         context = super(IndexView, self).get_context_data(**kwargs)
-        context['log_list'] = qs
         context['channel'] = channel
         context['end_at'] = end_at.strftime('%Y-%m-%dT%H:%M:%S')
         context['start_at'] = start_at.strftime('%Y-%m-%dT%H:%M:%S')

@@ -75,13 +75,8 @@ def check_log(instance, **kwargs):
             try:
                 title = soup.title.string
                 Log(command='NOTICE', channel=log.channel,
-                    nick='maobot', message=title).save()
+                    nick='maobot', message=title, is_irc=False).save()
 
-                # send to irc channel
-                sendstr = 'NOTICE %s :%s' % (log.channel, title)
-                cmd = "echo '%s' > /tmp/run/irc3/:raw" % sendstr
-                if os.path.isdir('/tmp/run/irc3'):
-                    subprocess.call(cmd, shell=True)
             except (AttributeError, TypeError, HTTPError):
                 pass
 
@@ -94,7 +89,10 @@ def check_log(instance, **kwargs):
                 'https://twitter.com/[a-zA-Z0-9_]+/status/\d+')
 
             if twitter_pat.match(url):
-                images = bsObj.find("div", {"class": "permalink-tweet-container"}).find("div", {"class": "AdaptiveMedia-container"}).findAll("div", {"class": "AdaptiveMedia-photoContainer"})
+                try:
+                    images = soup.find("div", {"class": "permalink-tweet-container"}).find("div", {"class": "AdaptiveMedia-container"}).findAll("div", {"class": "AdaptiveMedia-photoContainer"})
+                except AttributeError:
+                    images = soup.findAll("div", {"class": "media"})
                 for image in images:
                     image_url = image.find('img')['src']
                     img = image_from_response(requests.Session().get(image_url),

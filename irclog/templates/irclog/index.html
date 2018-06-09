@@ -24,29 +24,10 @@
             {% for c in channels %}
                 <div class="tab-pane {% if channel.id == c.id %}active{% endif %}" id="channel_id_{{ c.id }}" role="tabpanel" aria-labelledby="channel_id_{{ c.id }}-tab">
                     <div class="table-responsive">
-                    <table class="table table-striped table-sm">
-                    {% if log_list %}
-                        <tbody id="channel_id_{{ c.id }}_body">
-                        {% for log in log_list %}
-                            {% if log.channel.id == c.id %}
-                                <tr class="row no-gutters">
-                                    <td class="irc time">{{ log.created_at|date:"Y-m-d" }} {{ log.created_at|time:"H:i:s" }}</td>
-                                    <td class="irc name">({{ log.nick }})</td>
-                                    <td class="irc {% if log.command == "PRIVMSG" %}priv{% elif log.command == "NOTICE" or "JOIN" %}noti{% endif %}">{{ log.message|urlize|linebreaksbr }}</td>
-                                </tr>
-                                {% if log.attached_image %}
-                                <tr class="row no-gutters">
-                                    <td class="attached_image" style="display: none"><img src="{{ MEDIA_URL }}/media/{{ log.attached_image }}" /></td>
-                                </tr>
-                                {% endif %}
-                                {% if log.video %}
-                                {% endif %}
-                            {% else %}
-                            {% endif %}
-                        {% endfor %}
-                        </tbody>
-                    {% endif %}
-                    </table>
+                        <table class="table table-striped table-sm">
+                            <tbody id="channel_id_{{ c.id }}_body">
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             {% endfor %}
@@ -137,9 +118,9 @@
                                 }
                                 if (log.attached_image_url) {
                                     if (shown_image) {
-                                        tr.append('<td class="attached_image"><img src="{{ MEDIA_URL }}' + log.attached_image_url + '" /></td>');
+                                            log_list.append('<tr class="attached_image row no-gutters"><td><img src="{{ MEDIA_URL }}' + log.attached_image_url + '" /></td></tr>');
                                     } else {
-                                        tr.append('<td class="attached_image" style="display: none"><img src="{{ MEDIA_URL }}' + log.attached_image_url + '" /></td>');
+                                            log_list.append('<tr class="attached_image row no-gutters" style="display: none"><td><img src="{{ MEDIA_URL }}' + log.attached_image_url + '" /></td></tr>');
                                     }
                                 }
                             }
@@ -180,5 +161,8 @@
                $(".attached_image").hide();
             }
         }
+        $().ready(function () {
+            submitSearchForm('{% url "irclog:api_v1_now" %}');
+        });
     </script>
 {% endblock %}
