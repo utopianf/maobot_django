@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{% static 'irclog/css/irc.css' %}">
 {% endblock %}
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid" style="margin-bottom: 30px;">
     <div class="row">
         <nav class="col-2 d-none d-sm-block bg-light sidebar nav nav-pills">
             <div class="list-group" id="channelList" role="tablist">
@@ -51,21 +51,20 @@
                 <!--input type="file" class="col-2" name="attached_image" id="attached_image"-->
                 <button onclick="submitCreateForm()" class="col-1 btn btn-primary">送信</button>
             </div>
-
-            <!-- SearchLogForm -->
-            <div id="search-form" class="row">
-                <label class="sr-only" for="keyword">keyword</label>
-                <input type="text" class="col-2 form-control" name="keyword" id="keyword" placeholder="keyword" value="" />
-                <input type="datetime-local" class="col-3 form-control" name="start_at" required id="start_at" value="{{ start_at }}" />
-                <input type="datetime-local" class="col-3 form-control" name="end_at" required id="end_at" value="{{ end_at }}" />
-                <button id="search" onclick="submitSearchForm('{% url "irclog:api_v1_search" %}')" class="col-1 btn btn-light">search</button>
-                <button id="previous" onclick="submitSearchForm('{% url "irclog:api_v1_previous" %}')" class="col-1 btn btn-light" name="previous_duration">&lt;&lt;</button>
-                <button id="now" onclick="submitSearchForm('{% url "irclog:api_v1_now" %}')" class="col-1 btn btn-light" name="now">○</button>
-                <button id="next" onclick="submitSearchForm('{% url "irclog:api_v1_next" %}')" class="col-1 btn btn-light" name="next_duration">&gt;&gt;</button>
-            </div>
         </main>
     </div>
 </div>
+            <!-- SearchLogForm -->
+<nav class="navbar fixed-bottom navbar-light bg-light navbar-expand-lg row">
+    <label class="sr-only" for="keyword">keyword</label>
+    <input type="text" class="form-control col-2" name="keyword" id="keyword" placeholder="keyword" value="" />
+    <input type="datetime-local" class="form-control col-3" name="start_at" required id="start_at" value="{{ start_at }}" />
+    <input type="datetime-local" class="form-control col-3" name="end_at" required id="end_at" value="{{ end_at }}" />
+    <button id="search" onclick="submitSearchForm('{% url "irclog:api_v1_search" %}')" class="btn btn-light col-1">search</button>
+    <button id="previous" onclick="submitSearchForm('{% url "irclog:api_v1_previous" %}')" class="btn btn-light col-1" name="previous_duration">&lt;&lt;</button>
+    <button id="now" onclick="submitSearchForm('{% url "irclog:api_v1_now" %}')" class="btn btn-light col-1" name="now">○</button>
+    <button id="next" onclick="submitSearchForm('{% url "irclog:api_v1_next" %}')" class="btn btn-light col-1" name="next_duration">&gt;&gt;</button>
+</nav>
 {% endblock content %}
 {% block extrabody %}
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>

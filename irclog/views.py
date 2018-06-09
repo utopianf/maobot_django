@@ -33,8 +33,8 @@ class IndexView(LoginRequiredMixin, CreateView):
         # Make context
         context = super(IndexView, self).get_context_data(**kwargs)
         context['channel'] = channel
-        context['end_at'] = end_at.strftime('%Y-%m-%dT%H:%M:%S')
-        context['start_at'] = start_at.strftime('%Y-%m-%dT%H:%M:%S')
+        context['end_at'] = end_at.strftime('%Y-%m-%dT%H:%M')
+        context['start_at'] = start_at.strftime('%Y-%m-%dT%H:%M')
         context['channels'] = Channel.objects.all()
         context['current_user'] = self.request.user
         return context
@@ -70,8 +70,8 @@ def get_irclog_info(start_at, end_at, keyword=''):
         log_list.append(log)
     irclog_info = {
         'log_list': log_list,
-        'start_at': start_at.strftime('%Y-%m-%dT%H:%M:%S'),
-        'end_at': end_at.strftime('%Y-%m-%dT%H:%M:%S'),
+        'start_at': start_at.strftime('%Y-%m-%dT%H:%M'),
+        'end_at': end_at.strftime('%Y-%m-%dT%H:%M'),
         'channel_id_list': [c.id for c in Channel.objects.all()]
     }
     return irclog_info
@@ -89,7 +89,7 @@ def api_v1_post(request):
         if create_form.is_valid():
             create_form.save()
             return JsonResponse({'created_at': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
-                                 'end_at': timezone.now().strftime('%Y-%m-%dT%H:%M:%S'),
+                                 'end_at': timezone.now().strftime('%Y-%m-%dT%H:%M'),
                                  'message': create_form.cleaned_data.get('message'),
                                  'channel': create_form.cleaned_data.get('channel').id})
 
@@ -102,8 +102,8 @@ def api_v1_search(request):
     :return:
     """
     if request.is_ajax() and request.method == 'GET':
-        start_at = dt.strptime(request.GET['start_at'], '%Y-%m-%dT%H:%M:%S')
-        end_at = dt.strptime(request.GET['end_at'], '%Y-%m-%dT%H:%M:%S')
+        start_at = dt.strptime(request.GET['start_at'], '%Y-%m-%dT%H:%M')
+        end_at = dt.strptime(request.GET['end_at'], '%Y-%m-%dT%H:%M')
         keyword = request.GET['keyword']
 
         irclog_info = get_irclog_info(start_at, end_at, keyword)
@@ -126,8 +126,8 @@ def api_v1_now(request):
 
 def api_v1_next(request):
     if request.is_ajax() and request.method == 'GET':
-        start_at = dt.strptime(request.GET['start_at'], '%Y-%m-%dT%H:%M:%S')
-        end_at = dt.strptime(request.GET['end_at'], '%Y-%m-%dT%H:%M:%S')
+        start_at = dt.strptime(request.GET['start_at'], '%Y-%m-%dT%H:%M')
+        end_at = dt.strptime(request.GET['end_at'], '%Y-%m-%dT%H:%M')
 
         duration = end_at - start_at
         end_at += duration
@@ -139,8 +139,8 @@ def api_v1_next(request):
 
 def api_v1_previous(request):
     if request.is_ajax() and request.method == 'GET':
-        start_at = dt.strptime(request.GET['start_at'], '%Y-%m-%dT%H:%M:%S')
-        end_at = dt.strptime(request.GET['end_at'], '%Y-%m-%dT%H:%M:%S')
+        start_at = dt.strptime(request.GET['start_at'], '%Y-%m-%dT%H:%M')
+        end_at = dt.strptime(request.GET['end_at'], '%Y-%m-%dT%H:%M')
 
         duration = end_at - start_at
         end_at -= duration
