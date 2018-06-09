@@ -32,10 +32,6 @@ class IndexView(LoginRequiredMixin, CreateView):
 
         # Make context
         context = super(IndexView, self).get_context_data(**kwargs)
-        context['channel'] = channel
-        context['end_at'] = end_at.strftime('%Y-%m-%dT%H:%M')
-        context['start_at'] = start_at.strftime('%Y-%m-%dT%H:%M')
-        context['channels'] = Channel.objects.all()
         context['current_user'] = self.request.user
         return context
 
