@@ -12,4 +12,5 @@ urlpatterns = [
     path('api/v1/next', views.api_v1_next, name='api_v1_next'),
     path('api/v1/now', views.api_v1_now, name='api_v1_now'),
     path('api/v1/previous', views.api_v1_previous, name='api_v1_previous'),
+    path('api/v1/allchannels', views.api_v1_allchannels, name='api_v1_allchannels'),
 ]

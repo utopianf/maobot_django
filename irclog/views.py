@@ -40,6 +40,21 @@ class IndexView(LoginRequiredMixin, CreateView):
         return context
 
 
+def api_v1_allchannels(request):
+    """
+    Returns joined channel lists.
+    """
+    channels = Channel.objects.all()
+    channel_list = []
+    for c in channels:
+        channel = {'id': c.id,
+                   'name': c.name,
+                   'members': c.ircusers,
+                   'topic': c.topic,}
+        channel_list.append(channel)
+    return JsonResponse({'channels': channel_list})
+
+
 def get_irclog_info(start_at, end_at, keyword=''):
     """
     Returns irclog information.

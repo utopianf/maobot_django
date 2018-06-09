@@ -7,31 +7,13 @@
 <div class="container-fluid" style="margin-bottom: 30px;">
     <div class="row">
         <nav class="col-2 d-none d-sm-block bg-light sidebar nav nav-pills">
-            <div class="list-group" id="channelList" role="tablist">
-            {% for c in channels %}
-                <a class="list-group-item list-group-item-action nav-link {% if channel.id == c.id %}active{% endif %}" id="channel_id_{{ c.id }}-tab" data-toggle="list" href="#channel_id_{{ c.id }}" role="tab" val="{{ c.id }}">
-                    {{ c.name }}<br />{{ c.ircusers }}
-                </a>
-            {% endfor %}
-            </div>
+            <div class="list-group" id="channelList" role="tablist"></div>
             <button id="image_button" onclick="imageButton()" type="button" class="btn btn-primary" data-toggle="button" aria-pressed="false" autocomplete="off">
                 image
             </button>
         </nav>
         <main role="main" class="col-10 ml-sm-auto pt-3">
-            <div class="tab-content" id="log-list">
-
-            {% for c in channels %}
-                <div class="tab-pane {% if channel.id == c.id %}active{% endif %}" id="channel_id_{{ c.id }}" role="tabpanel" aria-labelledby="channel_id_{{ c.id }}-tab">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-sm">
-                            <tbody id="channel_id_{{ c.id }}_body">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            {% endfor %}
-            </div>
+            <div class="tab-content" id="log-list"></div>
 
             <!-- LogCreateForm -->
             <div id="create-form" class="row">
@@ -70,10 +52,8 @@
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
     <script>
         shown_image = false;
-        $(function() {
-            $('#channelList a').on('click', function (_) {
-                $('#current_channel_id').val($(this).attr('val'));
-            });
+        $('#channelList').on('click', 'a.nav-link', function (_) {
+            $('#current_channel_id').val($(this).attr('val'));
         });
         function csrfSafeMethod(method) {
         // these HTTP methods do not require CSRF protection
@@ -161,6 +141,24 @@
             }
         }
         $().ready(function () {
+            $.ajax({
+                url: '{% url "irclog:api_v1_allchannels" %}',
+                type: 'POST',
+                contentType: false,
+                processData: false,
+                cache: false,
+                success: function(response) {
+                    $.each(response.channels, function(i, c){
+                        if (c.id == '1') {
+                            $('#channelList').append("<a class='list-group-item list-group-item-action nav-link active' id='channel_id_" + c.id +"-tab' data-toggle='list' href='#channel_id_" + c.id + "' role='tab' val=" + c.id + ">" + c.name + "<br />" + c.members + "<br />" + c.topic + "</a>");
+                            $('#log-list').append("<div class='tab-pane active' id='channel_id_" + c.id + "' role='tabpanel' aria-labelledby='channel_id_" + c.id + "-tab'><div class='table-responsive'><table class='table table-striped table-sm'><tbody id='channel_id_" + c.id + "_body'></tbody></table></div></div>");
+                        } else {
+                            $('#channelList').append("<a class='list-group-item list-group-item-action nav-link' id='channel_id_" + c.id +"-tab' data-toggle='list' href='#channel_id_" + c.id + "' role='tab' val=" + c.id + ">" + c.name + "<br />" + c.members + "<br />" + c.topic + "</a>");
+                            $('#log-list').append("<div class='tab-pane' id='channel_id_" + c.id + "' role='tabpanel' aria-labelledby='channel_id_" + c.id + "-tab'><div class='table-responsive'><table class='table table-striped table-sm'><tbody id='channel_id_" + c.id + "_body'></tbody></table></div></div>");}
+                    })
+                }
+
+            });
             submitSearchForm('{% url "irclog:api_v1_now" %}');
         });
     </script>
