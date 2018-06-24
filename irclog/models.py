@@ -20,6 +20,7 @@ class Log(models.Model):
         'attached image', null=True, blank=True)
     created_at = models.DateTimeField('date created', default=timezone.now)
     is_irc = models.BooleanField(default=True)
+    is_from_log = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-id']

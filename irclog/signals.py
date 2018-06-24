@@ -4,6 +4,7 @@ import subprocess
 from io import BytesIO
 import urllib.request
 from urllib.error import HTTPError
+from urllib.parse import urlencode, quote
 import uuid
 from imghdr import what
 
@@ -66,12 +67,14 @@ def image_from_response(response, image):
 @receiver(post_save, sender=Log)
 def check_log(instance, **kwargs):
     log = instance
-    if log.nick != 'maobot':
+    title = 'test'
+    if log.nick != 'maobot' and log.command == 'PRIVMSG' and log.nick != 'maobot_php':
         url_pat = re.compile(r"https?://[a-zA-Z0-9\-./?@&=:~_#]+")
         url_list = re.findall(url_pat, log.message)
         for url in url_list:
-            response = urllib.request.urlopen(url)
-            soup = BeautifulSoup(response, 'lxml')
+            r = requests.get(url)
+            content_type_encoding = r.encoding if r.encoding != 'ISO-8859-1' else None
+            soup = BeautifulSoup(r.content, 'html.parser', from_encoding=content_type_encoding)
             try:
                 title = soup.title.string
                 Log(command='NOTICE', channel=log.channel,
@@ -87,6 +90,7 @@ def check_log(instance, **kwargs):
                 'https://www.pixiv.net/member_illust.php/?\?([a-zA-Z0-9\-./?@&=:~_#]+)')
             twitter_pat = re.compile(
                 'https://twitter.com/[a-zA-Z0-9_]+/status/\d+')
+            image_format = ["jpg", "jpeg", "gif", "png"]
 
             if twitter_pat.match(url):
                 try:
@@ -94,11 +98,14 @@ def check_log(instance, **kwargs):
                 except AttributeError:
                     images = soup.findAll("div", {"class": "media"})
                 for image in images:
-                    image_url = image.find('img')['src']
-                    img = image_from_response(requests.Session().get(image_url),
-                                              Image(original_url=url, related_log=log))
-                    img.save()
-                    Log.objects.filter(id=log.id).update(attached_image=img.thumb)
+                    try:
+                        image_url = image.find('img')['src']
+                        img = image_from_response(requests.Session().get(image_url),
+                                                Image(original_url=url, related_log=log, caption=title))
+                        img.save()
+                        Log.objects.filter(id=log.id).update(attached_image=img.thumb)
+                    except:
+                        pass
             elif nicoseiga_pat.match(url):
                 seiga_login = 'https://secure.nicovideo.jp/secure/login'
                 seiga_id = nicoseiga_pat.search(url).group(1)
@@ -126,8 +133,11 @@ def check_log(instance, **kwargs):
                 pixiv_illust = api.illust_detail(pixiv_id, req_auth=True).illust
                 if 'meta_pages' in pixiv_illust and len(pixiv_illust.meta_pages) != 0:
                     image_urls = []
-                    for i in pixiv_illust.meta_pages:
-                        image_urls.append(i.image_urls.large)
+                    if 'page' in pixiv_dict:
+                        image_urls.append(pixiv_illust.meta_pages[int(pixiv_dict['page'][0])].image_urls.large)
+                    else:
+                        for i in pixiv_illust.meta_pages:
+                            image_urls.append(i.image_urls.large)
                 else:
                     image_urls = [pixiv_illust.image_urls.large]
                 for image_url in image_urls:
@@ -135,6 +145,12 @@ def check_log(instance, **kwargs):
                                                  headers={'Referer': 'https://app-api.pixiv.net/'},
                                                  stream=True)
                     img = image_from_response(response,
-                                              Image(original_url=url, related_log=log))
+                                              Image(original_url=url, related_log=log, caption=pixiv_illust.title))
                     img.save()
                     Log.objects.filter(id=log.id).update(attached_image=img.thumb)
+            elif url.split(".")[-1] in image_format:
+                img = image_from_response(requests.Session().get(url),
+                                          Image(original_url=url, related_log=log))
+                img.save()
+                Log.objects.filter(id=log.id).update(attached_image=img.thumb)
+

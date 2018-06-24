@@ -17,7 +17,7 @@ class Image(models.Model):
     original_url = models.URLField(null=True)
     related_log = models.ForeignKey('irclog.Log', related_name='images',
                                     null=True, on_delete=models.SET_NULL)
-    caption = models.CharField('Caption', max_length=20, null=True)
+    caption = models.TextField('Caption', max_length=1000, null=True)
     extension = models.CharField('Extension', max_length=10, null=True)
     image = models.ImageField(null=True)
     thumb = models.ImageField(upload_to='thumb/',null=True)
@@ -27,6 +27,10 @@ class Image(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class Tag(models.Model):
+    name = models.TextField('Tag', max_length=50)
 
 
 class ImageSet(models.Model):

@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-<main role="main" class="container">
+<main role="main" class="container-fluid">
 {% if image_list %}
     <table>
     <tbody>
@@ -14,7 +14,7 @@
         {% if image.thumb %}
         <td>
             <div class='text-center'>
-                <a href="{{ image.image.url }}" class='example-image-link' data-lightbox='example-set' data-title="{{ image.related_log }}">
+                    <a href="{{ image.image.url }}" class='example-image-link' data-lightbox='example-set' data-title='{{ image.related_log | urlize }}<br />{{ image.caption }}'>
                     <img alt='Generic placeholder thumbnail' class='rounded img-fluid' src="{{ image.thumb.url }}"></img>
                 </a>
             </div>
@@ -30,6 +30,19 @@
     {% if is_paginated %}
     <div class="pagination">
        <span class="page-links">
+          {% if page_obj.object_list %}
+          <div class="dropdown show">
+              <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      {{ page_obj.number }}
+              </a>
+
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                  {% for p in page_obj.paginator.page_range %}
+                  <a class="dropdown-item" href="/ircimages?page={{ p }}">{{ p }}</a>
+                  {% endfor %}
+              </div>
+          </div>
+          {% endif %}
           {% if page_obj.has_previous %}
             <a href="/ircimages?page={{ page_obj.previous_page_number }}">previous</a>
           {% endif %}

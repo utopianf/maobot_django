@@ -25,6 +25,7 @@ class LogCreateForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         instance.is_irc = False
+        instance.is_from_log = True
 
         # handle attached image
         img_temp = self.cleaned_data.get('attached_image')

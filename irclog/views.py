@@ -25,11 +25,6 @@ class IndexView(LoginRequiredMixin, CreateView):
     redirect_field_name = 'redirect_to'
 
     def get_context_data(self, **kwargs):
-        # init setting
-        end_at = timezone.now()
-        start_at = timezone.now() - datetime.timedelta(hours=3)
-        channel = Channel.objects.all()[0]
-
         # Make context
         context = super(IndexView, self).get_context_data(**kwargs)
         context['current_user'] = self.request.user
@@ -65,7 +60,7 @@ def get_irclog_info(start_at, end_at, keyword=''):
     for result in results:
         url_pat = r"https?://[a-zA-Z0-9\-./?@&=:~_#]+"
         message = result.message
-        match_url = re.match(url_pat, message)
+        match_url = re.search(url_pat, message)
         if match_url:
             find = re.finditer(url_pat, message)
             for f in find:
@@ -75,7 +70,9 @@ def get_irclog_info(start_at, end_at, keyword=''):
                'command': result.command,
                'message': message,
                'channel': result.channel.id,
-               'nick': result.nick}
+               'nick': result.nick,
+               'is_from_log': result.is_from_log,
+               }
         if result.attached_image:
             log['attached_image_url'] = result.attached_image.url
         log_list.append(log)

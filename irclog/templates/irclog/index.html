@@ -52,6 +52,13 @@
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
     <script>
         shown_image = false;
+
+        $('#message').keypress(function(e) {
+            if (e.which == 13) {
+                submitCreateForm();
+                return false;
+            }
+        });
         $('#channelList').on('click', 'a.nav-link', function (_) {
             $('#current_channel_id').val($(this).attr('val'));
         });
@@ -89,7 +96,11 @@
                                 log_list.append('<tr class="row no-gutters" id="tr' + index + '"></tr>');
                                 var tr = $("#tr" + index);
                                 tr.append('<td class="irc time">' + log.created_at + '</td>');
-                                tr.append('<td class="irc name"> (' + log.nick + ')</td>');
+                                if (log.is_from_log) {
+                                    tr.append('<td class="irc name"> [' + log.nick + ']</td>');
+                                } else {
+                                    tr.append('<td class="irc name"> (' + log.nick + ')</td>');
+                                }
                                 if (log.command === "PRIVMSG") {
                                     tr.append('<td class="irc priv"> ' + log.message + '</td>');
                                 } else {

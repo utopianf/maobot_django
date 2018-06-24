@@ -38,10 +38,16 @@ class MaoBot(SingleServerIRCBot):
         self.reactor.scheduler.execute_every(3, self.echo_test)
 
     def on_join(self, c, e):
-        if e.source.nick == c.nickname:
-            c.privmsg(e.target, 'どうも〜')
+        channel = Channel.objects.get(name__exact=e.target)
+        nick = e.source.nick
+        if nick == c.nickname:
+            c.notice(e.target, 'どうも〜')
+            Log(nick=nick, message='どうも〜', channel=channel, command='NOTICE').save()
         else:
-            c.privmsg(e.target, '%s, ようこそ〜' % e.source.nick)
+            c.notice(e.target, '%sさん, ようこそ〜' % nick)
+            Log(nick='maobot', message='%sさん, ようこそ〜' % nick, channel=channel, command='NOTICE').save()
+            c.mode(e.target, '+o %s' % nick)
+
 
     def on_pubmsg(self, c, e):
         channel = Channel.objects.get(name__exact=e.target)
@@ -57,7 +63,15 @@ class MaoBot(SingleServerIRCBot):
     def echo_test(self):
         for ch in self.autojoins:
             channel = Channel.objects.get(name__exact=ch)
-            channel.ircusers = ", ".join(self.channels[ch].users())
+            opers = self.channels[ch].opers()
+            ircusers = self.channels[ch].users()
+            userlist = []
+            for u in ircusers:
+                if u in opers:
+                    userlist.append('☆'+u)
+                else:
+                    userlist.append(u)
+            channel.ircusers = ', '.join(userlist)
             channel.save()
 
         end_time = datetime.datetime.now()
@@ -69,10 +83,13 @@ class MaoBot(SingleServerIRCBot):
                     send_message = log.message
                 else:
                     send_message = '(%s) %s' % (log.nick, log.message)
-                if log.command == 'NOTICE':
-                    self.connection.notice(log.channel.name, send_message)
-                elif log.command == 'PRIVMSG':
-                    self.connection.privmsg(log.channel.name, send_message)
+                try:
+                    if log.command == 'NOTICE':
+                        self.connection.notice(log.channel.name, send_message)
+                    elif log.command == 'PRIVMSG':
+                        self.connection.privmsg(log.channel.name, send_message)
+                except:
+                    pass
         qs.update(is_irc=True)
 
 def main():
