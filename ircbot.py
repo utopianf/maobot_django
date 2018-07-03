@@ -1,5 +1,6 @@
 import atexit
 import datetime
+import io
 import os
 from pathlib import Path
 import shutil
@@ -76,20 +77,17 @@ class MaoBot(SingleServerIRCBot):
 
         end_time = datetime.datetime.now()
         start_time = end_time - datetime.timedelta(seconds=60)
-        qs = Log.objects.filter(created_at__range=(start_time, end_time))
+        qs = Log.objects.filter(created_at__range=(start_time, end_time)).order_by('created_at')
         for log in qs:
             if not log.is_irc:
                 if log.nick == 'maobot':
                     send_message = log.message
                 else:
                     send_message = '(%s) %s' % (log.nick, log.message)
-                try:
-                    if log.command == 'NOTICE':
-                        self.connection.notice(log.channel.name, send_message)
-                    elif log.command == 'PRIVMSG':
-                        self.connection.privmsg(log.channel.name, send_message)
-                except:
-                    pass
+                if log.command == 'NOTICE':
+                    self.connection.notice(log.channel.name, send_message)
+                elif log.command == 'PRIVMSG':
+                    self.connection.privmsg(log.channel.name, send_message)
         qs.update(is_irc=True)
 
 def main():

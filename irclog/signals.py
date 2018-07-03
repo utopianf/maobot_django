@@ -67,8 +67,7 @@ def image_from_response(response, image):
 @receiver(post_save, sender=Log)
 def check_log(instance, **kwargs):
     log = instance
-    title = 'test'
-    if log.nick != 'maobot' and log.command == 'PRIVMSG' and log.nick != 'maobot_php':
+    if log.command == 'PRIVMSG':
         url_pat = re.compile(r"https?://[a-zA-Z0-9\-./?@&=:~_#]+")
         url_list = re.findall(url_pat, log.message)
         for url in url_list:
@@ -76,7 +75,7 @@ def check_log(instance, **kwargs):
             content_type_encoding = r.encoding if r.encoding != 'ISO-8859-1' else None
             soup = BeautifulSoup(r.content, 'html.parser', from_encoding=content_type_encoding)
             try:
-                title = soup.title.string
+                title = soup.title.string.replace("\n", " ")
                 Log(command='NOTICE', channel=log.channel,
                     nick='maobot', message=title, is_irc=False).save()
 
@@ -119,7 +118,7 @@ def check_log(instance, **kwargs):
                 image_url = 'http://lohas.nicoseiga.jp%s' % soup.find(
                     'div', {'class': 'illust_view_big'})['data-src']
                 img = image_from_response(requests.Session().get(image_url),
-                                          Image(original_url=url, related_log=log))
+                        Image(original_url=url, related_log=log, caption=soup.title.string[:-16]))
                 img.save()
                 Log.objects.filter(id=log.id).update(attached_image=img.thumb)
             elif pixiv_pat.match(url):
@@ -134,12 +133,12 @@ def check_log(instance, **kwargs):
                 if 'meta_pages' in pixiv_illust and len(pixiv_illust.meta_pages) != 0:
                     image_urls = []
                     if 'page' in pixiv_dict:
-                        image_urls.append(pixiv_illust.meta_pages[int(pixiv_dict['page'][0])].image_urls.large)
+                        image_urls.append(pixiv_illust.meta_pages[int(pixiv_dict['page'][0])].image_urls.original)
                     else:
                         for i in pixiv_illust.meta_pages:
-                            image_urls.append(i.image_urls.large)
+                            image_urls.append(i.image_urls.original)
                 else:
-                    image_urls = [pixiv_illust.image_urls.large]
+                    image_urls = [pixiv_illust.meta_single_page.original_image_url]
                 for image_url in image_urls:
                     response = api.requests_call('GET', image_url,
                                                  headers={'Referer': 'https://app-api.pixiv.net/'},
