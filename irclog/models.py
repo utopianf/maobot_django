@@ -4,6 +4,15 @@ from django.utils import timezone
 # Create your models here.
 
 
+class Channel(models.Model):
+    name = models.CharField('channel name', max_length=50, unique=True)
+    topic = models.TextField('channel topic', null=True)
+    ircusers = models.CharField('channel user', max_length=100, null=True)
+
+    def __str__(self):
+         return self.name
+
+
 class Log(models.Model):
     AVAILABLE_COMMAND = (
         ('PRIVMSG', 'priv'),
@@ -29,14 +38,4 @@ class Log(models.Model):
         return '%s [%s] %s: %s' % (
                 self.created_at.strftime('%Y-%m-%d %H:%M:%S'), 
                 self.channel, self.nick, self.message)
-
-
-class Channel(models.Model):
-    name = models.CharField('channel name', max_length=50, unique=True)
-    topic = models.TextField('channel topic', null=True)
-    ircusers = models.CharField('channel user', max_length=100, null=True)
-
-    def __str__(self):
-        return self.name
-
 
