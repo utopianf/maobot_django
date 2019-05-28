@@ -31,6 +31,7 @@ class MaoBot(SingleServerIRCBot):
         SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         self.connection.transmit_encoding = 'ISO-2022-JP'
         self.connection.buffer_class.encoding = 'ISO-2022-JP'
+        self.connection.buffer_class.errors = 'replace'
         self.autojoins = autojoins
 
     def on_welcome(self, c, e):
@@ -84,6 +85,7 @@ class MaoBot(SingleServerIRCBot):
                     send_message = log.message
                 else:
                     send_message = '(%s) %s' % (log.nick, log.message)
+                send_message = send_message.encode('iso2022_jp', 'replace').decode('iso2022_jp')
                 if log.command == 'NOTICE':
                     self.connection.notice(log.channel.name, send_message)
                 elif log.command == 'PRIVMSG':
