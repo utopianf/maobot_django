@@ -24,7 +24,7 @@ SECRET_KEY = 'lrs49i2*4)kko84zu(m-0ul6r%@pzp3&euz(ak6n3ha3&5yuy1'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.vert-utopia.com', 'vert-utopia.com', 'fp276fe74d.tkyc001.ap.nuro.jp', 'localhost']
+ALLOWED_HOSTS = ['192.168.0.41', 'www.vert-utopia.com', 'vert-utopia.com', 'fp276fe74d.tkyc001.ap.nuro.jp', 'localhost']
 
 # Application definition
 
@@ -71,15 +71,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'maobot.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -133,3 +124,4 @@ MEDIA_URL = '/media/'
 import maobot.settings_local
 
 SECRET_KEYS = maobot.settings_local.SECRET_KEYS
+DATABASES = maobot.settings_local.DATABASES

@@ -10,7 +10,7 @@ from imghdr import what
 
 import requests
 from bs4 import BeautifulSoup
-import PIL
+import PIL.Image
 
 from django.core.files import File
 from django.core.files.base import ContentFile
@@ -67,26 +67,30 @@ def image_from_response(response, image):
 @receiver(post_save, sender=Log)
 def check_log(instance, **kwargs):
     log = instance
+    print(log)
     if log.command == 'PRIVMSG':
         url_pat = re.compile(r"https?://[a-zA-Z0-9\-./?@&=:~_#]+")
         url_list = re.findall(url_pat, log.message)
         for url in url_list:
             r = requests.get(url)
-            content_type_encoding = r.encoding if r.encoding != 'ISO-8859-1' else None
-            soup = BeautifulSoup(r.content, 'html.parser', from_encoding=content_type_encoding)
-            try:
-                title = soup.title.string.replace("\n", " ")
-                Log(command='NOTICE', channel=log.channel,
-                    nick='maobot', message=title, is_irc=False).save()
+            if r.status_code != 403:
+                content_type_encoding = r.encoding if r.encoding != 'ISO-8859-1' else None
+                soup = BeautifulSoup(r.content, 'html.parser', from_encoding=content_type_encoding)
+                try:
+                    title = soup.title.string.replace("\n", " ")
+                    Log(command='NOTICE', channel=log.channel,
+                        nick='maobot', message=title, is_irc=False).save()
 
-            except (AttributeError, TypeError, HTTPError):
-                pass
+                except (AttributeError, TypeError, HTTPError):
+                    pass
 
             # image dl
             nicoseiga_pat = re.compile(
                 'http://seiga.nicovideo.jp/seiga/[a-zA-Z]+([0-9]+)')
             pixiv_pat = re.compile(
                 'https://www.pixiv.net/member_illust.php/?\?([a-zA-Z0-9\-./?@&=:~_#]+)')
+            pixiv_pat_2 = re.compile(
+                    'https://i.pximg.net/img-((master)|(original))/img/([0-9]+)/([0-9]+)/([0-9]+)/([0-9]+)/([0-9]+)/([0-9]+)/([0-9]+)_p([0-9]+)(_master1200)?.((jpg)|(png))')
             twitter_pat = re.compile(
                 'https://twitter.com/[a-zA-Z0-9_]+/status/\d+')
             image_format = ["jpg", "jpeg", "gif", "png"]
@@ -103,8 +107,8 @@ def check_log(instance, **kwargs):
                                                 Image(original_url=url, related_log=log, caption=title))
                         img.save()
                         Log.objects.filter(id=log.id).update(attached_image=img.thumb)
-                    except:
-                        pass
+                    except Exception as e:
+                        print(e)
             elif nicoseiga_pat.match(url):
                 seiga_login = 'https://secure.nicovideo.jp/secure/login'
                 seiga_id = nicoseiga_pat.search(url).group(1)
@@ -147,9 +151,22 @@ def check_log(instance, **kwargs):
                                               Image(original_url=url, related_log=log, caption=pixiv_illust.title))
                     img.save()
                     Log.objects.filter(id=log.id).update(attached_image=img.thumb)
+            elif pixiv_pat_2.match(url):
+                from pixivpy3 import AppPixivAPI
+                api = AppPixivAPI()
+                api.login(SECRET_KEYS['pixiuser'], SECRET_KEYS['pixipass'])
+                pixiv_id = pixiv_pat_2.search(url).group(10)
+                pixiv_illust = api.illust_detail(pixiv_id, req_auth=True).illust
+                response = api.requests_call('GET', url,
+                                             headers={'Referer': 'https://app-api.pixiv.net/'},
+                                             stream=True)
+                img = image_from_response(response,
+                                          Image(original_url=url, related_log=log, caption=pixiv_illust.title))
+                img.save()
+                Log.objects.filter(id=log.id).update(attached_image=img.thumb)
+
             elif url.split(".")[-1] in image_format:
                 img = image_from_response(requests.Session().get(url),
                                           Image(original_url=url, related_log=log))
                 img.save()
                 Log.objects.filter(id=log.id).update(attached_image=img.thumb)
-

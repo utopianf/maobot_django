@@ -14,7 +14,7 @@ def upload_path_handler(instance):
 class Image(models.Model):
     """One single image"""
 
-    original_url = models.URLField(null=True)
+    original_url = models.URLField(null=True, max_length=300)
     related_log = models.ForeignKey('irclog.Log', related_name='images',
                                     null=True, on_delete=models.SET_NULL)
     caption = models.TextField('Caption', max_length=1000, null=True)

@@ -16,12 +16,17 @@
 <body>
 <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
   <a class="navbar-brand" href="../">maobot</a>
-  <div class="collapse navbar-collapse">
+  <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#Navbar" aria-controls="Navbar" aria-expanded="false" aria-label="label">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="Navbar">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item"><a class="nav-link" href="{% url 'irclog:index' %}">irclog</a></li>
       <li class="nav-item"><a class="nav-link" href="{% url 'ircimages:index' %}">ircimages</a></li>
+      <li class="nav-item"><a class="nav-link" href="http://www.vert-utopia.com/mypage/maobot_php/irclog.php">旧irclog</a></li>
       <li class="nav-item"><a class="nav-link" href="#">ircvideos</a></li>
       <li class="nav-item"><a class="nav-link" href="http://www.vert-utopia.com/mypage/wiki/">wiki</a></li>
+      <li class="nav-item"><a class="nav-link" href="http://www.vert-utopia.com/blog/">blog</a></li>
     </ul>
     {% if 'ircon'|irc_exists %}
     <div style="font-size:1em; color:green">

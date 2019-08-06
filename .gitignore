@@ -37,3 +37,6 @@ media
 watcher.sh
 nohup.out
 restart.sh
+.bash_history
+.viminfo
+dump.json

@@ -11,17 +11,19 @@
     <tbody>
     <tr>
     {% for image in image_list %}
-        {% if image.thumb %}
         <td>
             <div class='text-center'>
                     <a href="{{ image.image.url }}" class='example-image-link' data-lightbox='example-set' data-title='{{ image.related_log | urlize }}<br />{{ image.caption }}'>
+                    {% if image.thumb %}
                     <img alt='Generic placeholder thumbnail' class='rounded img-fluid' src="{{ image.thumb.url }}"></img>
+                    {% else %}
+                    <img alt='Generic placeholder thumbnail' class='rounded img-fluid' src="{{ image.image.url }}" width="150" height="150"></img>
+                    {% endif %}
                 </a>
             </div>
         </td>
         {% if forloop.counter == 10 or forloop.counter == 20 or forloop.counter == 30 or forloop.counter == 40 or forloop.counter == 50 %}
             </tr><tr>
-        {% endif %}
         {% endif %}
     {% endfor %}
     </tr>
