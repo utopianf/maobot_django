@@ -61,7 +61,7 @@ texttable==0.8.8
 tornado==4.2.1
 ufw==0.35
 unattended-upgrades==0.1
-urllib3==1.21.1
+urllib3==1.26.5
 virtualenv==15.0.1
 websocket-client==0.40.0
 zope.component==4.3.0
